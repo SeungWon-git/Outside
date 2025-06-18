@@ -563,19 +563,21 @@ void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::stea
 		// 점수판 계산
 		int alive_cnt = 0;
 		int dead_cnt = 0;
-		int disconnected = 0;
+		//int disconnected = 0;
 		int bestkill_cnt = 0;
 		std::string bestkill_player = "None";
 
 		for (const auto player : playerDB[roomid]) {
-			if (g_players.find(player.first) == g_players.end()) { // 연결이 끊긴 플레이어라면  
-				disconnected++;
-				if (bestkill_cnt < player.second.killcount) {   // 연결이 끊겼어도 젤 마니 좀비를 죽였을 수도 있으니
-					bestkill_cnt = player.second.killcount;
-					bestkill_player = player.second.username;
-				}
-				continue;
-			}
+			//if (g_players.find(player.first) == g_players.end()) { // 연결이 끊긴 플레이어라면  
+			//	disconnected++;
+			//	if (bestkill_cnt < player.second.killcount) {   // 연결이 끊겼어도 젤 마니 좀비를 죽였을 수도 있으니
+			//		bestkill_cnt = player.second.killcount;
+			//		bestkill_player = player.second.username;
+			//	}
+			//	
+			//	// ==> 여기 아예 작동 X, playerDB, g_player 둘다 플레이어가 연결 끊으면 erase()해서 연결 끊긴 플레이어 검색 자체가 안됨 => 즉 여기 조건문 들어올 일도 없음
+			//	continue;
+			//}
 
 			// 게임 시간 초과 엔딩은 그냥 모든 플레이어가 실패라고 띄워야해서
 			dead_cnt++;

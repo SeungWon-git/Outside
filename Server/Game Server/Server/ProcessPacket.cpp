@@ -64,6 +64,7 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
             clientInfo->roomid = Packet.roomnum();
             //cout << "g_players (룸 아이디는?): " << g_players[id]->roomid << endl;
             AddPlayerToRoom(Packet.roomnum(), clientInfo);
+            cout << "Player " << clientInfo->id << " 의 게임 ID: " << Packet.playerid() << endl;
         }
 
 
