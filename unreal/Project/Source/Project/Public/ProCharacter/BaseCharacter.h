@@ -10,6 +10,7 @@
 #include "Components/SpotLightComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "ProGamemode/ProGameInstance.h"
+#include "ProItem/ItemBoxActor.h"
 
 #include <atomic>
 
@@ -38,7 +39,7 @@ class UGameChatUI;
 class AInterActor;
 
 
-DECLARE_DELEGATE_SixParams(FThrowOnGround, FName, EItemClass, UTexture2D*, int, float, float);
+DECLARE_DELEGATE_SevenParams(FThrowOnGround, FName, EItemClass, UTexture2D*, int, float, float, int);
 DECLARE_MULTICAST_DELEGATE(FAttackEndPlayerDelegate);
 DECLARE_MULTICAST_DELEGATE(FPickUpEndPlayerDelegate);
 DECLARE_MULTICAST_DELEGATE(FBleedHealingEndPlayerDelegate);
@@ -142,7 +143,7 @@ public:
 	UGameTimerUI* GameTimerUIWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TArray<FItemDataStructure> PickUpSlot;
+	TArray<FItemDataStructure> PickUpSlot;	// 이건 대체 왜 배열로 선언함?;; 어차피 하나만 쓰면서...
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UPickUpUI> PickUpUIClass;
@@ -246,7 +247,7 @@ public:
 	void LookUp(float NewAxisValue);
 	void Turn(float NewAxisValue);
 	void GetItem();
-	void OtherGetItem();
+	//void OtherGetItem(); => 사용 X
 	void LightOnOff();
 	void InventoryOnOff();
 
@@ -554,6 +555,8 @@ public:
 
 	void Send_Destroy(uint32 itemboxid);
 
+	void PickUpItem(AItemBoxActor* itemboxid);
+
 	void Send_GetKey(uint32 itemid, uint32 itemboxid);
 
 	void Send_OpenRoot(uint32 itemid, uint32 carid);
@@ -725,7 +728,7 @@ public:
 
 	float Speed;
 
-	uint32 ItemBoxId = 0;
+	uint32 GetItemBox_Id = 0;
 
 
 	uint32 BPlayerCount = 0;

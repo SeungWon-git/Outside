@@ -39,4 +39,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	AActor* HitActor;
+
+	UPROPERTY(EditAnywhere)
+	AActor* PreviousHighlightedActor;
 };

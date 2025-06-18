@@ -28,12 +28,13 @@
 
 std::unordered_map<int, ZombieBT> zombie_bt_map;
 std::unordered_map<int, RoomState> room_states;
-std::unordered_map<unsigned int, PLAYER_INFO*> g_players;
-std::unordered_map<int, std::unordered_map<int, PLAYER_INFO*>> room_players;
-std::unordered_map<int, std::unordered_map<int, Player>> playerDB;
+std::unordered_map<unsigned int, PLAYER_INFO*> g_players;	
+std::unordered_map<int, std::unordered_map<int, PLAYER_INFO*>> room_players;	
+std::unordered_map<int, std::unordered_map<int, Player>> playerDB;	
 std::unordered_map<int, std::unordered_map<int, Player>> playerDB_BT;
 
 std::unordered_map<int, ZombieController*> zombieControllers;
+std::unordered_map<int, ItemController*> itemControllers;
 
 std::unordered_map<tuple<float, float, float>, vector<pair<tuple<float, float, float>, float>>, TupleHash> g_EdgesMapB2;
 std::unordered_map<tuple<float, float, float>, vector<pair<tuple<float, float, float>, float>>, TupleHash> g_EdgesMapB1;
@@ -79,8 +80,6 @@ IOCP_CORE::IOCP_CORE()
 	filePath = "EdgesF2.txt";
 	UpdateEdgesMap(unrealFilePath + filePath, filePath);
 	LoadEdgesMap(filePath, g_valispositionsF2, g_EdgesMapF2);
-
-	itemclass = new ItemController(*this);
 
 	IOCP_GetServerIpAddress();
 	CheckThisCPUcoreCount();
@@ -368,7 +367,10 @@ void IOCP_CORE::IOCP_AcceptThread()
 		user->recv_overlap.wsabuf.len = sizeof(user->recv_overlap.iocp_buffer);
 		user->isInGame = false;
 
+		//* g_players 새로 생성
 		g_players[user->id] = user;
+
+		//cout << "g_players 새로 생성 (룸 아이디는?): " << g_players[user->id]->roomid << endl; // 여기서 설정하지는 않음 나중가서 설정하는데 도대체 어디?=> 찾음!
 
 		/* 주변 클라이언트에 대해 뿌릴 정보 뿌리고, 시야 리스트나 처리해야 할 정보들도 함께 넣는다. */
 
@@ -392,7 +394,7 @@ void IOCP_CORE::DisconnectClient(unsigned int id) {
 		playerDB[user->roomid].erase(id);
 
         delete user;
-        g_players.erase(id);
+		g_players.erase(id);
     }
 }
 
@@ -635,7 +637,7 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 
 				// 접속이 끊긴 것도 검사
 				if (room_players[roomid].size() == 0) {
-					cout << "방-" << roomid << " 에 더이상 연결된 플레이어가 없습니다... => (g_players.size() == 0)" << endl;
+					cout << "방-" << roomid << " 에 더이상 연결된 플레이어가 없습니다... => (room_players[roomid].size() == 0)" << endl;
 					cout << endl;
 
 					result = "NO PLAYER";
@@ -806,6 +808,16 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 
 		// send_path 통신작업
 		for (const auto player : playerDB_BT[roomid]) {
+			if (g_players.find(player.first) == g_players.end()) { // 연결이 끊긴 플레이어라면
+				continue;	// 보내지 X
+			}
+			else if (g_players[player.first]->connected == false) { // 연결이 끊긴 플레이어라면
+				continue;	// 보내지 X
+			}
+			else if (g_players[player.first]->send_zombie == false || g_players[player.first]->send_item == false || g_players[player.first]->send_car == false) {	// 아직 월드 생성 중이라면
+				continue;	// 아직 보내지 X
+			}
+
 			Protocol::ZombiePathList zPathList;
 			zPathList.set_packet_type(10);
 

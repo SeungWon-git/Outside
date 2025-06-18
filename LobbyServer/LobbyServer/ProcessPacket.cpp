@@ -121,7 +121,7 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
 
         Protocol::Select_Character Select_Packet;
         Select_Packet.ParseFromArray(buffer, bufferSize);
-        cout << Select_Packet.character_type() << endl;
+        //cout << Select_Packet.character_type() << "(1 - Girl, 2 - Idol, 3 - FireFighter, 4 - CompanyGuy)" << endl;
 
         Select_Packet.set_playerid(g_players[Select_Packet.playerid()]->player_num);
         Select_Packet.set_character_type(Select_Packet.character_type());
@@ -136,7 +136,7 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
         for (const auto& player : g_players) {
             if (player.second->room_num == room_id) {
                 IOCP_SendPacket(player.first, serializedData.data(), serializedData.size());
-                printf("傈价等 规锅龋: %d", player.second->room_num);
+                //printf("傈价等 规锅龋: %d\n", player.second->room_num);
             }
         }
         return true;

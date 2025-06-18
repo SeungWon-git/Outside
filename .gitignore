@@ -406,3 +406,4 @@ Plugins/
 !/Libraries/*
 !libprotobuf.dll
 !libprotobufd.dll
+unreal/Project/Source.zip

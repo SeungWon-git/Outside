@@ -285,7 +285,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 
 				UE_LOG(LogNet, Display, TEXT("queue try pop Q_dropitem"));
 
-				MyGameMode->SpawnOtherCharGroundItemBoxes((recvDropItem.itemid - 1), Fitemname, recvDropItem.itemclass, LoadedTexture, recvDropItem.count, recvDropItem.itempos, recvDropItem.durability, recvDropItem.durability_max);
+				MyGameMode->SpawnOtherCharGroundItemBoxes(recvDropItem.itemid, Fitemname, recvDropItem.itemclass, LoadedTexture, recvDropItem.count, recvDropItem.itempos, recvDropItem.durability, recvDropItem.durability_max);
 			}
 		}
 
@@ -398,7 +398,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 			if (AOneGameModeBase* MyGameMode = Cast<AOneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld())))
 			{
 				MyGameMode->UpdateZombie(recvZombieData.ZombieId, recvZombieData.ZombieType, recvZombieData.Location, recvZombieData.Rotation);
-				UE_LOG(LogNet, Display, TEXT("Update call Zombie: Playerid=%d"), GameInstance->ClientSocketPtr->MyPlayerId);	// 좀비가 움직이거나 스폰되면 보내는데 이제는 움직임은 따로 통신하지 않아서 스폰될때 불림
+				//UE_LOG(LogNet, Display, TEXT("Spawn Zombie: Playerid=%d, Zombieid=%d"), GameInstance->ClientSocketPtr->MyPlayerId, recvZombieData.ZombieId);	// 좀비가 스폰될때 불림
 			}
 		}
 
@@ -462,6 +462,11 @@ void APlayerCharacterController::Tick(float DeltaTime)
 
 		if (ZombieMap.IsEmpty() == true) {
 			break;
+		}
+
+		if (&tmp_path == nullptr) {
+			UE_LOG(LogTemp, Error, TEXT("(Q_path) tmp_path is empty!"));	// 레어한데 갑자기 계단에 있을때 tmp_path에 잘못된 메모리 참조 오류가 발생해서 추가;;
+			continue;
 		}
 
 		ABaseZombie** zombie = ZombieMap.Find(tmp_path.ZombieId);
@@ -687,7 +692,6 @@ void APlayerCharacterController::CheckAndSendMovement(float DeltaTime)
 	FRotator CurrentRotation = MyPawn->GetActorRotation();
 
 	ABaseCharacter* MyBaseCharacter = Cast<ABaseCharacter>(MyPawn);
-	uint32 ItemBoxId = MyBaseCharacter->ItemBoxId;
 	float hp = MyBaseCharacter->GetHP();
 
 	bool bShouldSend = false;

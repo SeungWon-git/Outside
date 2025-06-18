@@ -162,8 +162,8 @@ public:
     SCarKeyRandom CarKeyRandom[7];
 
     // 아이템 생성 함수
-    void SpawnItemBoxes(int32 itemboxindex, FName itemname, uint32 itemclass, UTexture2D* texture, int count, uint32 itemfloor, FVector itempos);
-    void SpawnOtherCharGroundItemBoxes(int32 itemboxindex, FName itemname, uint32 itemclass, UTexture2D* texture, int count, FVector itempos, float durability, float durability_max);
+    void SpawnItemBoxes(int32 itemid, FName itemname, uint32 itemclass, UTexture2D* texture, int count, uint32 itemfloor, FVector itempos);
+    void SpawnOtherCharGroundItemBoxes(int32 original_itembox_id, FName itemname, uint32 itemclass, UTexture2D* texture, int count, FVector itempos, float durability, float durability_max);
 
     void NullPtrItemBoxesIndex(int32 itemboxindex);
 
@@ -180,9 +180,9 @@ public:
 
     void DestroyItem(uint32 Itemid, uint32 Playerid);
 
-    void SpawnOnGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max);
+    void SpawnOnGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max, int original_itembox_id);
     
-    void SpawnOnDeathGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max, FVector playerlocation);
+    void SpawnOnDeathGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max, FVector playerlocation, int original_itembox_id);
 
     void CarActorRandomLocationSetting();
 
