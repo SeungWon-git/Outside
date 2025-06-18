@@ -50,6 +50,11 @@ ARunningZombie::ARunningZombie()
 	float CurrentHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 	//  캡슐 크기도 동일한 비율로 변경
 	GetCapsuleComponent()->SetCapsuleSize(CurrentRadius * zombieScale, CurrentHalfHeight * zombieScale);
+
+	// Scale로 키 변경에 따른 공중 뜨기 방지
+	FVector original_Offset = GetMesh()->GetRelativeLocation();
+	RelativeHeight_ZOffset = -4.f;
+	GetMesh()->SetRelativeLocation(FVector(original_Offset.X, original_Offset.Y, original_Offset.Z + RelativeHeight_ZOffset));
 }
 
 void ARunningZombie::BeginPlay()

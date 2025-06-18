@@ -114,9 +114,9 @@ extern std::unordered_map<int, ZombieBT> zombie_bt_map;
 extern std::unordered_map<int, RoomState> room_states; // 방 ID -> RoomState
 
 
-extern std::unordered_map<unsigned int, PLAYER_INFO*> g_players;// room_players 와 비슷한데 room에 따라 저장을 안하고 그냥 쭉 연속해서 저장함 & 가장 먼저 생성함 (id배정은 1에서 부터 쭉 연속해서, 중간에 삭제되어도 이전 마지막 숫자에서 이어서 할당)
-extern std::unordered_map<int, std::unordered_map<int, PLAYER_INFO*>> room_players; // room에 따라 플레이어 정보 저장 (패킷통신에 필요한 정보들)
-extern std::unordered_map<int, std::unordered_map<int, Player>> playerDB;  // room에 따라서 플레이어 정보 저장 (인게임에서 필요한 정보들)
+extern std::unordered_map<unsigned int, PLAYER_INFO*> g_players;// room_players 와 비슷한데 room에 따라 저장을 안하고 그냥 쭉 연속해서 저장함 & 가장 먼저 생성함 (+ id배정은 1에서 부터 쭉 연속해서, 중간에 삭제되어도 이전 마지막 숫자에서 이어서 할당)
+extern std::unordered_map<int, std::unordered_map<int, PLAYER_INFO*>> room_players; // room에 따라 플레이어 정보 저장 (패킷통신에 필요한 정보들) (+ id배정은 g_players와 같이 1부터 쭉 연속해서)
+extern std::unordered_map<int, std::unordered_map<int, Player>> playerDB;  // room에 따라서 플레이어 정보 저장 (인게임에서 필요한 정보들) (+ id배정은 g_players와 같이 1부터 쭉 연속해서)
 extern std::unordered_map<int, std::unordered_map<int, Player>> playerDB_BT;	// 송수신 쓰레드와 BT 쓰레드간 데이터 레이스 방지용으로 사용
 extern std::unordered_map<int, ZombieController*> zombieControllers;
 extern std::unordered_map<int, ItemController*> itemControllers;

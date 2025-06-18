@@ -742,4 +742,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	int floor = FLOOR::Zero;
 
+	float RelativeHeight_ZOffset = 0; // 캐릭마다 키 변경에 따른 공중 떠있기 방지하기 위해 사용
+
 };

@@ -548,7 +548,7 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
         UE_LOG(LogTemp, Error, TEXT("ItemBoxClasses.IsValidIndex(dropItemBoxIndex) == false!!!!!! -> dropItemBoxIndex: %d"), dropItemBoxIndex);
     }
 
-    FVector itemboxpos = DefaultPawn->GetActorLocation() + FVector(DropPos.X, DropPos.Y, -60.149886f);
+    FVector itemboxpos = DefaultPawn->GetActorLocation() + FVector(DropPos.X, DropPos.Y, -60.149886f + DefaultPawn->RelativeHeight_ZOffset * 1.5);
 
     //UE_LOG(LogTemp, Warning, TEXT("SpawnedItemBoxBefore!"));
     AItemBoxActor* SpawnedItemBox = GetWorld()->SpawnActor<AItemBoxActor>(SelectedItemBoxClass, itemboxpos, FRotator::ZeroRotator);

@@ -370,8 +370,6 @@ void IOCP_CORE::IOCP_AcceptThread()
 		//* g_players 새로 생성
 		g_players[user->id] = user;
 
-		//cout << "g_players 새로 생성 (룸 아이디는?): " << g_players[user->id]->roomid << endl; // 여기서 설정하지는 않음 나중가서 설정하는데 도대체 어디?=> 찾음!
-
 		/* 주변 클라이언트에 대해 뿌릴 정보 뿌리고, 시야 리스트나 처리해야 할 정보들도 함께 넣는다. */
 
 		// 클라이언트에서 응답오길 기다리기
