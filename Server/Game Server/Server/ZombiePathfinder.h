@@ -27,8 +27,8 @@ class ZombiePathfinder {
 public:
     ZombiePathfinder() = default;
 
-    ZombiePathfinder(float startX, float startY, float startZ, float goalX, float goalY, float goalZ)
-        : startX(startX), startY(startY), startZ(startZ), goalX(goalX), goalY(goalY), goalZ(goalZ) { }
+    ZombiePathfinder(int roomId, int ownerZombieId, float startX, float startY, float startZ, float goalX, float goalY, float goalZ)
+        : roomID(roomId), ownerZombieID(ownerZombieId), startX(startX), startY(startY), startZ(startZ), goalX(goalX), goalY(goalY), goalZ(goalZ) { }
 
     void Run(vector<tuple<float, float, float>>& t, int patroltype);
 
@@ -37,13 +37,16 @@ public:
 
     FLOOR floor;
 
+    int roomID;
+    int ownerZombieID;
+
 private:
     float startX, startY, startZ;
     float goalX, goalY, goalZ;
     float beforegoalX = 0.f;
     float beforegoalY = 0.f;
     float beforegoalZ = 0.f;
-    int  PatrolType = 0; // 0일때는 일반 동작 , 1일때는 patrol
+    int  PatrolType = 0; // 0일때는 일반 동작 , 1일때는 patrol check
 
     vector<tuple<float, float, float>> validPositions;
     vector<tuple<float, float, float>> obstacles;

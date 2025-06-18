@@ -25,7 +25,7 @@ bool LoginManager::RegisterName(const string& username, const string& password)
             return false;
         }
     }
-    cout << username << " " << password << endl;
+    cout << "ID: " << username << ", PW: " << password << " - Registered!" << endl;
     // 새 사용자 추가
     SaveToUser("users.txt", username, password);
     return true;
@@ -35,7 +35,8 @@ bool LoginManager::RegisterName(const string& username, const string& password)
 bool LoginManager::Login(const string& username, const string& password)
 {
     if (logged_in_users[username]) {
-        cout << "이미 로그인된 사용자입니다." << endl;
+        cout << "이미 로그인된 사용자입니다. - ";
+        cout << "ID: " << username << endl;
         return false;
     }
 
@@ -46,8 +47,9 @@ bool LoginManager::Login(const string& username, const string& password)
             return true;
         }
     }
-    cout << username << " " << password << endl;
-    cout << "등록되지 않은 아이디거나 비밀번호가 틀렸습니다." << endl;
+
+    cout << "등록되지 않은 아이디거나 비밀번호가 틀렸습니다. - ";
+    cout << "ID: " << username << ", PW: " << password << endl;
     return false;
 
     /*std::unique_ptr<sql::PreparedStatement> pstmt(

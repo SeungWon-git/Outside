@@ -15,7 +15,7 @@ constexpr double PI = 3.14159265358979323846;
 
 
 Zombie::Zombie()
-	: pathfinder(0,0,0,1,1,1)
+	: pathfinder(-1,-1,0,0,0,1,1,1)
 {
 	iocpServer = nullptr;
 
@@ -75,7 +75,7 @@ Zombie::Zombie()
 }
 
 Zombie::Zombie(IOCP_CORE* mainServer, Zombie_Data z_d)
-	: pathfinder(0, 0, 0, 1, 1, 1)
+	: pathfinder(z_d.roomID, z_d.zombieID, 0, 0, 0, 1, 1, 1)
 {
 	iocpServer = mainServer;
 
