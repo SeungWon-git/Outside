@@ -58,8 +58,8 @@
 - 패킷 손실 이슈: 여러 송신 스레드에서 Send (*Data Race 발생) → 송신 데이터들을 모아 송신큐에 담는 방식으로 전환 및 단일 송신 스레드 설계
 - 좀비 멈춤 현상: for루프를 돌며 너무 반복적이고 연속적으로 패킷을 Send하여 패킷로스가 발생 → 층별 묶음 전송 방식으로 개선
 - 코드: 
-[서버 좀비 path 송신](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/iocpServerClass.cpp#L807)
-[서버 좀비 움직임 계산](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Zombie.cpp#L630)
+[서버 좀비 path 송신](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/iocpServerClass.cpp#L809), 
+[서버 좀비 움직임 계산](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Zombie.cpp#L633), 
 [클라 좀비 움직임 계산](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L36)
 
 ### 🔸 서버-클라 좀비 플레이어 시야에 포착
@@ -68,8 +68,8 @@
 - 따라서 Ray Casting은 클라에서 직접 실행하되, 시야에 포착하였다고 서버로 알려주는 방식 채용
 - 실제 포착했는지 여부는 또 서버에서 거리에 따라 랜덤 확률에 따라 판단하여 클라에 전달
 - 코드:
-[클라 Ray Casting 검사](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L346)
-[서버 거리에 따른 플레이어 랜덤 포착](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Zombie.cpp#L1476)
+[클라 Ray Casting 검사](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L346), 
+[서버 거리에 따른 플레이어 랜덤 포착](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Zombie.cpp#L1479)
 
 ### 🔸 스켈레탈 메시 절단 시스템
 - 절단 당시 해당 좀비의 포즈에 스켈레탈 메시 정보들을 가지고 본을 움직여 스켈레탈 메시 → 프로시져 메시로 전환
@@ -81,7 +81,7 @@
   + 이때 절단면을 구분하기 위해 모든 버텍스 정보들을 순회하기에는 시간이 오래 걸리니 밀도 기반 클러스터링(DBSCAN) 알고리즘을 이용
    + 알고리즘 사용 후 처리 속도: **0.5초-5초 → 0.01초-0.02초**
  - 코드:
-[스켈레탈 메시 → 프로시져 메시 전환하는 함수](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1566)
+[스켈레탈 메시 → 프로시져 메시 전환하는 함수](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1566), 
 [N개 절단 함수](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1566)
 
 ### 🔸 최적화 작업
@@ -93,7 +93,7 @@
   * A* 알고리즘: 정점 기반 경로 → 선분 기반으로 변경 
     - 처리 속도 **0.5초 → 0.001초(=1ms)**
  - 코드:
-[A* 알고리즘](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/ZombiePathfinder.cpp#L192)
+[A* 알고리즘](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/ZombiePathfinder.cpp#L200)
 
 ### 🔸 좀비 애니메이션 문제
 - 문제: 좀비 공격/피격 후 다시 다음 애니메이션으로 전환될 시에 걷기 애니메이션이 항상 강제적으로 재생이 되어 움찔거리게 되는 문제 발생
@@ -114,7 +114,8 @@
 ## 🐞 버그 관리 전략
 - `버그.txt` 문서 작성 → **1000줄 이상 추적** + 영상까지 기록
   + [버그 리스트](https://github.com/2023gamedev/project/blob/SW/JungSeungWon/%EA%B8%B0%ED%83%80/%EB%B2%84%EA%B7%B8.txt)
-  + ![영상 기록]()
+  + 영상 기록
+  + <img src="https://github.com/2023gamedev/project/blob/SW/JungSeungWon/%EA%B8%B0%ED%83%80/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202025-06-21%20181037.png" width="300">
 - GitHub + 매주 3회 이상 대면회의 + 주마다 작업일지 병행
   + [주차별 작업일지](https://github.com/2023gamedev/project/tree/SW/JungSeungWon/%EC%9E%91%EC%97%85%EC%9D%BC%EC%A7%80)
 - `#ifdef DEBUG` 와 같이 세분화된 전처리기 조건부 로그로 서버 BT 문제 위치 빠르게 추적
