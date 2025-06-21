@@ -16,7 +16,7 @@
    + Unreal Engine 5.5, C++, Blueprints, Niagara VFX
    + iocp server, Google protobuf, Behavior Tree
    + GitHub
- - 시연 영상: (https://www.youtube.com/watch?v=11JJCJvbKck)
+ - 시연 영상: [▶️ 유튜브 영상 보기](https://www.youtube.com/watch?v=11JJCJvbKck)
 
 ## 🧑‍💻 맡은 역할
 - **좀비 AI 구현** (BT / 서버-클라 동기화 포함)
@@ -123,4 +123,4 @@
 ---
 
 ## 📎 기타
-- GitHub 저장소: (https://github.com/2023gamedev/project/tree/SW)
+- GitHub 저장소: 👉 [GitHub 저장소 바로가기](https://github.com/2023gamedev/project/tree/SW)
