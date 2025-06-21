@@ -3,4 +3,4 @@
 * * *
 
 ## * 게임 플레이 영상: [Outside_YT_Link](https://www.youtube.com/watch?v=11JJCJvbKck)
-![YT_IMG](http://img.youtube.com/vi/11JJCJvbKck/0.jpg)
+![YT_IMG](http://img.youtube.com/vi/11JJCJvbKck&t=02/0.jpg)
