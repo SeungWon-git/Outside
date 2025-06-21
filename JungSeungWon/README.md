@@ -17,6 +17,7 @@
    + iocp server, Google protobuf, Behavior Tree
    + GitHub
  - 시연 영상: [▶️ 유튜브 영상 보기](https://www.youtube.com/watch?v=11JJCJvbKck)
+<img src="http://img.youtube.com/vi/11JJCJvbKck/0.jpg" width="400">
 
 ## 🧑‍💻 맡은 역할
 - **좀비 AI 구현** (BT / 서버-클라 동기화 포함)
