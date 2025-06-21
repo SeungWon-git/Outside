@@ -61,8 +61,8 @@
 - 따라서 Ray Casting은 클라에서 직접 실행하되, 시야에 포착하였다고 서버로 알려주는 방식 채용
 - 실제 포착했는지 여부는 또 서버에서 거리에 따라 랜덤 확률에 따라 판단하여 클라에 전달
 - 코드:
-[클라 Ray Casting 검사]()
-[서버 거리에 따른 플레이어 랜덤 포착]()
+[클라 Ray Casting 검사](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L346)
+[서버 거리에 따른 플레이어 랜덤 포착](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Zombie.cpp#L1476)
 
 ### 🔸 스켈레탈 메시 절단 시스템
 - 절단 당시 해당 좀비의 포즈에 스켈레탈 메시 정보들을 가지고 본을 움직여 스켈레탈 메시 → 프로시져 메시로 전환
@@ -74,8 +74,8 @@
   + 이때 절단면을 구분하기 위해 모든 버텍스 정보들을 순회하기에는 시간이 오래 걸리니 밀도 기반 클러스터링(DBSCAN) 알고리즘을 이용
    + 알고리즘 사용 후 처리 속도:
  - 코드:
-[스켈레탈 메시 → 프로시져 메시 전환하는 함수]()
-[N개 절단 함수]()
+[스켈레탈 메시 → 프로시져 메시 전환하는 함수](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1566)
+[N개 절단 함수](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1566)
 
 ### 🔸 최적화 작업
 - 클라이언트:
@@ -86,7 +86,7 @@
   * A* 알고리즘: 정점 기반 경로 → 선분 기반으로 변경 
     - 처리 속도 **0.5초 → 0.001초(=1ms)**
  - 코드:
-[A* 알고리즘]()
+[A* 알고리즘](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/ZombiePathfinder.cpp#L192)
 
 ### 🔸 좀비 애니메이션 문제
 - 문제: 좀비 공격/피격 후 다시 다음 애니메이션으로 전환될 시에 걷기 애니메이션이 항상 강제적으로 재생이 되어 움찔거리게 되는 문제 발생
@@ -101,7 +101,7 @@
   + 플레이어 위치 이동 패킷 전송도 Tick에서 움직임이 있을때마다 보내지 않고 60분에 1초 단위마다 보내도록 한계 설정
   + 패킷으로 받은 플레이어 위치를 원격 클라에서 직접 적용할 때도 보간을 이용하여 부드럽게 움직이는 것 처럼 보이도록 함
 - 코드:
-[플레이어 위치 동기화]()
+[플레이어 위치 동기화](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProCharacter/PlayerCharacterController.cpp#L128)
 ---
 
 ## 🐞 버그 관리 전략
