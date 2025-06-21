@@ -48,7 +48,7 @@
  [Selector](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Selector.h), 
  [트리 할당](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/ZombieBT.cpp#L59), 
  [CanSeePlayer의 Detect Decorator 구현](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/CanSeePlayer.h#L11)
-- 이를 통해 좀비 BT를 서버에서 전적으로 담당하게 되어 클라이언트에서는 서버에서 전송해주는 Task들만 수행하여 모든 클라이언트들에서 좀비 AI 동기화를 수행
+- 이를 통해 좀비 BT를 서버에서 전적으로 담당하게 되어 클라이언트에서는 서버에서 전송해주는 Task들(애니메이션 전환, 렌더링, 물리 처리)만 수행하여 모든 클라이언트들에서 좀비 AI 동기화를 수행
 
 ### 🔸 좀비 Path 동기화 이슈
 - path 동기화 설계:
@@ -79,7 +79,7 @@
 - 이후에 N개 절단(모든 사지 분리 절단) & 절단 부위 결합되며 부활은 다른 클라 담당 팀원이 전적으로 맡았지만 기본 N개 절단 아이디어는 같이 구상
   + 절단면에 버텍스 정보들과 절단 당시 본들의 정보를 대조하여 분리되어야 한다고 판단되는 버텍스들을 파악하고, 해당 절단면을 기준으로 떨어져야 하는 메시들을 따로 묶어 다시 프로시져 메시로 생성하는 방식으로 구현
   + 이때 절단면을 구분하기 위해 모든 버텍스 정보들을 순회하기에는 시간이 오래 걸리니 밀도 기반 클러스터링(DBSCAN) 알고리즘을 이용
-   + 알고리즘 사용 후 처리 속도: **0.5초-5초 → 0.01초-0.02초**
+    + 알고리즘 사용 후 처리 속도: **0.5초-5초 → 0.01초-0.02초**
  - 코드:
 [스켈레탈 메시 → 프로시져 메시 전환하는 함수](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1566), 
 [N개 절단 함수](https://github.com/2023gamedev/project/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1566)
