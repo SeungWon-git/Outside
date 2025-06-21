@@ -2,4 +2,5 @@
 
 * * *
 
-## * 게임 플레이 영상: [Outside_YT](https://www.youtube.com/watch?v=11JJCJvbKck)![YT_IMG](http://img.youtube.com/vi/11JJCJvbKck/0.jpg)
+## * 게임 플레이 영상: [Outside_YT_LINK](https://www.youtube.com/watch?v=11JJCJvbKck)
+![YT_IMG](http://img.youtube.com/vi/11JJCJvbKck/0.jpg)
