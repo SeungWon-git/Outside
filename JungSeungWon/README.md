@@ -123,6 +123,13 @@
   + [전처리기 디렉티브](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/iocpServerClass.h#L43)
 ---
 
+## 🌱 이번 프로젝트를 통해 배운점
+- 우리는 멀티 협동 좀비 서바이벌 게임을 개발하기 위해, 정밀한 좀비 AI 동기화와 좀비 절단 표현의 차별화를 특별히 신경을 써서 만들었다.
+   * 이 과정에서 클라-서버 동기화에서 유의해야 하는 점 등에대해 몸소 경험하였으며, 효율적이고 안정적인 동기화 방식이 어떤 것인지에 대해 실제로 고민하고 적용해 볼 수 있었다.
+   * AI를 직접 설계하며 행동 로직 구성의 난이도와 그에 따른 문제를 해결하기 위해 어떤 전략과 기법이 필요한지 깊이 고민하고 시도해보는 계기가 되었습니다.
+   * 비록 프로덕션 수준에는 다소 못 미쳤지만, 그에 근접하기 위해 다양한 언리얼 기능들을 활용해 보았고, 게임 개발의 전반적인 흐름과 협업 시 중요하게 고려해야 할 점들에 대해 많은 것을 배우게 되었다!
+---
+
 ## 📎 기타
 - GitHub 저장소: 👉 [GitHub 저장소 바로가기](https://github.com/2023gamedev/project/tree/SW)
 - Contributors Graphs: [🔗 View Contributors Graph](https://github.com/2023gamedev/project/graphs/contributors)
