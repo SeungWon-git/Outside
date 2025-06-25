@@ -278,24 +278,27 @@ bool Zombie::RandomPatrol()
 	py = ZombieData.y + offset_y;
 	pz = ZombieData.z;
 
-	//while (px >= 2366.f) {		// 좀비가 계단 쪽, 그리고 그쪽 벽 너머로 자주 넘어가는 오류가 있어 이를 일단 방지하기 위해 (맵 수정 전까지는) 
-	//									=> X 굳이? 어차피 CheckPath에서 계단 너머 쪽 포인트를 찍더라도 가장 가까운 실제 걸을 수 있는 지점을 찍을 꺼니까
-	//	px = ZombieData.x + dist(mt);
-	if (ZombieData.x >= 2366.f) {
-		cout << "좀비 #" << ZombieData.zombieID << " - ";
-		cout << "[ERROR] 현재 좀비 걸을 수 있는 지형을 벗어남!!! (계단 쪽을 넘어감)" << endl;
-		return false;
-	}
-	//}
+	while (px >= 2366.f) {		// 좀비가 계단 쪽, 그리고 그쪽 벽 너머로 자주 넘어가는 오류가 있어 이를 일단 방지하기 위해 (맵 수정 전까지는) 
+								// => X 굳이? 어차피 CheckPath에서 계단 너머 쪽 포인트를 찍더라도 가장 가까운 실제 걸을 수 있는 지점을 찍을 꺼니까
+								// ===> XXX 보니까 맵 바깥도 걸을 수 있는 지점이라고 표시한 곳이 몇군데 있음!!! (특히 화장실 옆쪽 - 계단 뒤) => 네비메시 일단 수정 들어감
+		px = ZombieData.x + dist(mt);
 
-	//while (py <= -1200.f) {		// 좀비가 화장실 뒤쪽 너머 빈 공간으로 자주 넘어가서 일단 막음
-	//	py = ZombieData.y + dist(mt);
-	if (ZombieData.x <= -1200.f) {
-		cout << "좀비 #" << ZombieData.zombieID << " - ";
-		cout << "[ERROR] 현재 좀비 걸을 수 있는 지형을 벗어남!!! (화장실 뒤쪽을 넘어감)" << endl;
-		return false;
+		if (ZombieData.x >= 2366.f) {
+			cout << "좀비 #" << ZombieData.zombieID << " - ";
+			cout << "[ERROR] 현재 좀비 걸을 수 있는 지형을 벗어남!!! (계단 쪽을 넘어감)" << endl;
+			return false;
+		}
 	}
-	//}
+
+	while (py <= -1000.f) {		// 좀비가 화장실 뒤쪽 너머 빈 공간으로 자주 넘어가서 일단 막음
+		py = ZombieData.y + dist(mt);
+
+		if (ZombieData.y <= -1000.f) {
+			cout << "좀비 #" << ZombieData.zombieID << " - ";
+			cout << "[ERROR] 현재 좀비 걸을 수 있는 지형을 벗어남!!! (화장실 뒤쪽을 넘어감)" << endl;
+			return false;
+		}
+	}
 
 	vector<tuple<float, float, float>> dest_test;
 
@@ -1437,10 +1440,10 @@ bool Zombie::SearchRandomWalkableLocation(vector<vector<vector<float>>> target_o
 		}
 	}
 
-	while (ry <= -1200.f) {		
+	while (ry <= -1000.f) {		
 		ry = target_original_pos[0][0][1] + dist(mt);
 
-		if (target_original_pos[0][0][1] <= -1200.f) {	// 미리 footsound decorator(FootSound_Update_Check)에서 예외처리하긴함
+		if (target_original_pos[0][0][1] <= -1000.f) {	// 미리 footsound decorator(FootSound_Update_Check)에서 예외처리하긴함
 #ifdef	ENABLE_BT_FOOTSOUND_SEARCHRANDOMLOCATION_LOG
 			cout << "좀비 #" << ZombieData.zombieID << " - ";
 			cout << "가 포착한 플레이어 발소리 이미 걸을 수 있는 지형을 벗어남!!! (화장실 뒤쪽을 넘어)" << endl;	

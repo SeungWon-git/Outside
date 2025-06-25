@@ -197,7 +197,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CutZombie(FVector planeposition, FVector planenormal, bool do_self); 
 
-	void SliceProceduralmeshTest(FVector planeposition, FVector planenormal);
+	void SliceProceduralmesh(FVector planeposition, FVector planenormal);
 
 
 	float CalculateEuclideanDistance(const FVector& Point1, const FVector& Point2);
@@ -240,7 +240,6 @@ public:
 	FTimerHandle ZombieMergeWattingHandle;
 
 	void StartMergiingTimer();
-	void StartMergiingTimerNew();
 
 	FTimerHandle ZombieMergingHandle;
 
@@ -364,6 +363,8 @@ public:
 	bool doAction_setIsNormalDead_onTick = false;	// 좀비 사망시 클라 동기화용 (다른 클라가 좀비를 죽였을때)
 	bool doAction_setIsCuttingDead_onTick = false;	// 좀비 절단 사망시 클라 동기화용 (다른 클라가 좀비를 절단하여 죽였을때)
 
+	bool doAction_addImpulseOnProcMesh_onTick = false;	// 좀비 절단 사망시 impulse 클라 동기화용 (다른 클라가 좀비를 절단하여 죽였을때)
+
 	FVector sync_cutPlane;
 	FVector sync_cutNormal;
 	FVector sync_cutImpulse;
@@ -433,8 +434,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	ABaseCharacter* MyChar;
 
-	bool print_Velocity_1 = true;
-	bool print_Velocity_2 = true;
 
 	const float afterAnim_idleInterpol = 0.25f;	// -> 0.25초 idle: 공격/피격/샤우팅 애니메이션 재생후 바로 ZombieMoveTo 불려서 움직이게 되는 거 방지 (보간작업)
 	UPROPERTY(EditAnywhere)
