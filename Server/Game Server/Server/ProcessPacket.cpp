@@ -696,15 +696,28 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
 
         if (Packet.complete_type() == 1) {
             clientInfo->send_zombie = true;
-            //printf("Recv-send complete Zombie spawn packets\n");
+            //printf("Recv-send Zombie spawn packets complete\n");
         }
         else if (Packet.complete_type() == 2) {
             clientInfo->send_item = true;
-            //printf("Recv-send complete Item spawn packets\n");
+            //printf("Recv-send Item spawn packets complete\n");
         }
         else if (Packet.complete_type() == 3) {
             clientInfo->send_car = true;
-            //printf("Recv-send complete Car spawn packets\n");
+            //printf("Recv-send Car spawn packets complete\n");
+        }
+        else if (Packet.complete_type() == 4) {
+            clientInfo->send_game_clear = true;  // g_players 업데이트
+
+            int roomId = clientInfo->roomid;
+
+            if (room_players.find(roomId) != room_players.end()) {
+                if (room_players[roomId].find(id) != room_players[roomId].end()) {
+                    room_players[roomId].find(id)->second->send_game_clear = true;  // room_players 업데이트
+                }
+            }
+
+            //printf("Recv-send GameClear packet complete\n");
         }
 
         return true;
@@ -873,12 +886,14 @@ void IOCP_CORE::Send_GameEnd(int alive_cnt, int dead_cnt, int bestkill_cnt, std:
     clear_packet.set_best_kill_player(bestkill_player);
 
     for (const auto& player : room_players[roomid]) {
+        if (player.second->send_game_clear == false) {  // 아직 게임 클리어 패킷 송수신이 확인 안된 플레이어들에게만
 
-        clear_packet.set_my_killcount(playerDB[roomid][player.first].killcount);
+            clear_packet.set_my_killcount(playerDB[roomid][player.first].killcount);
 
-        string serializedData;
-        clear_packet.SerializeToString(&serializedData);
-        IOCP_SendPacket(player.first, serializedData.data(), serializedData.size());
+            string serializedData;
+            clear_packet.SerializeToString(&serializedData);
+            IOCP_SendPacket(player.first, serializedData.data(), serializedData.size());
+        }
     }
 }
 

@@ -364,7 +364,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 				std::string best_kill_player;*/
 
 
-				UE_LOG(LogNet, Display, TEXT("recvGameClearrecvGameClearrecvGameClearrecvGameClearrecvGameClear"));
+				UE_LOG(LogNet, Warning, TEXT("recvGameClearrecvGameClearrecvGameClearrecvGameClearrecvGameClear"));
 
 				//처리 recvEscapeRoot.playerid, recvEscapeRoot.root
 				APawn* ControlledPawn = GetPawn();
@@ -384,9 +384,19 @@ void APlayerCharacterController::Tick(float DeltaTime)
 							, recvGameClear.my_kill_count
 							, recvGameClear.best_kill_count
 							, bestkillplayerFStr);
+
+
+						// 서버에서 게임 클리어 패킷 그만 보내도록 다시 답장
+						Protocol::send_complete completepacket;
+						completepacket.set_packet_type(21);
+						completepacket.set_complete_type(4);
+
+						std::string serializedData;
+						completepacket.SerializeToString(&serializedData);
+
+						bool bIsSent = GameInstance->ClientSocketPtr->Send(serializedData.size(), (void*)serializedData.data());
+				
 					}
-
-
 				}
 			}
 		}

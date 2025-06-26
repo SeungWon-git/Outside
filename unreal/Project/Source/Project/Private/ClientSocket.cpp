@@ -556,7 +556,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 				{
 					Q_gclear.push(GameClear(clearpacket.root(), clearpacket.alive_players(), clearpacket.dead_players(), clearpacket.open_player(),
 						clearpacket.my_killcount(), clearpacket.best_killcount(), clearpacket.best_kill_player()));
-					UE_LOG(LogNet, Display, TEXT("Game Clear"));
+					UE_LOG(LogNet, Warning, TEXT("Game Clear"));
 				}
 				break;
 			}

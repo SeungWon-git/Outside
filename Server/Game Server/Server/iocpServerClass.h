@@ -79,6 +79,7 @@ using PLAYER_INFO = struct Client_INFO {
 	bool send_zombie = false;
 	bool send_item = false;
 	bool send_car = false;
+	bool send_game_clear = false;
 	int roomid = 0;
 	
 	// 전송 대기열 추가
