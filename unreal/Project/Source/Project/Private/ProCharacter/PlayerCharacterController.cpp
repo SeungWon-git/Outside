@@ -653,6 +653,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 
 		bool isAnimPlaying_besideWalking = false;	// 걷기 애니메이션 말고 다른 애니메이션 (공격, 피격, 샤우팅) 재생 중인지
 
+		// 가끔씩 이유는 모르겠는데 다른 층에서 이동하면 좀비가 바닥으로 떨어져서 여기서 크래시 발생할 때 꽤 있음;;; (특히 로컬에서 2개 동시에 켰을 시에)
 		if ((*zombie)->CachedAnimInstance->Montage_IsPlaying((*zombie)->CachedAnimInstance->AttackMontage) == true
 			|| (*zombie)->CachedAnimInstance->Montage_IsPlaying((*zombie)->CachedAnimInstance->BeAttackedMontage) == true
 			|| (*zombie)->CachedAnimInstance->Montage_IsPlaying((*zombie)->CachedAnimInstance->ShoutingMontage) == true) {

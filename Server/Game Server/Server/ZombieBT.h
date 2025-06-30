@@ -30,5 +30,6 @@ public:
 
 	Task* t_moveto = nullptr;
 	Task* t_attack = nullptr;
+	Task* t_lookaround = nullptr;
 
 };

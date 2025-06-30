@@ -29,7 +29,7 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
         //printf("SendDatas!! Playerid=#%d\n", id);
     }
 
-    if (clientInfo->roomid != 0 && !zombieDB[clientInfo->roomid].empty()) { // ==> 항상 두번씩 보냄 (이유랑 왜 어떻게 그런지는 사실 잘 모르겠음; 한번으로는 잘 못 받아서 그랬던가?)
+    if (clientInfo->roomid != 0 && !zombieDB[clientInfo->roomid].empty()) { // ==> 항상 두번씩 보냄 (이유랑 왜 어떻게 그런지는 사실 잘 모르겠음; 한번으로는 잘 못 받아서 그랬던가?)=>그냥 너무 빨리 보내서 두번 보내지는 듯
         if (!clientInfo->send_zombie) {
             zombieControllers[clientInfo->roomid]->SendZombieData(clientInfo->id);
         }
@@ -717,7 +717,7 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
                 }
             }
 
-            //printf("Recv-send GameClear packet complete\n");
+            //printf("Recv-send GameClear packet complete. PlayerID:%3u, RoomID:%3u\n", id, roomId);
         }
 
         return true;

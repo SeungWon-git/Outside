@@ -99,6 +99,11 @@ public:
             
             zom.HeardShouting = false;      // 샤우팅도
 
+            // 더 간단하게는 이렇게...
+            //bool clear_flag[6] = {};
+            //clear_flag[0] = false; clear_flag[1] = true; clear_flag[2] = true; clear_flag[3] = true; clear_flag[4] = false; clear_flag[5] = false;
+            //zom.ClearBlackBoard(clear_flag);
+
             CanSeePlayer(zom);
         }
 

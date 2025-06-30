@@ -192,7 +192,7 @@ public:
 
 	void Zombie_BT_Thread(int roomid);
 
-	void GameTimerEndCheck(int roomid, float& GameTime, std::chrono::steady_clock::time_point currentTime, std::chrono::steady_clock::time_point& lastGTTime);
+	void GameTimerEndCheck(int roomid, float& GameTime, std::chrono::steady_clock::time_point currentTime, std::chrono::steady_clock::time_point& lastGTTime, std::chrono::steady_clock::time_point& lastGameClearSendTime);
 
 	void ServerOn();
 

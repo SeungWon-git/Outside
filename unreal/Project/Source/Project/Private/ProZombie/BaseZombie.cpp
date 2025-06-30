@@ -3867,12 +3867,19 @@ void ABaseZombie::WaittingTimerElapsed()
 	m_bIsCuttingDead = false;
 	m_bIsStanding = false;
 
-	auto CharacterAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
-	if (nullptr != CharacterAnimInstance) {
-		CharacterAnimInstance->SetIsNormalDead(m_bIsNormalDead);
-		CharacterAnimInstance->SetIsCuttingDead(m_bIsCuttingDead);
-		CharacterAnimInstance->SetIsStanding(m_bIsStanding);
-	}
+	//auto CharacterAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
+	//if (nullptr != CharacterAnimInstance) {
+	//	CharacterAnimInstance->SetIsNormalDead(m_bIsNormalDead);
+	//	CharacterAnimInstance->SetIsCuttingDead(m_bIsCuttingDead);
+	//	CharacterAnimInstance->SetIsStanding(m_bIsStanding);
+	//} // 이거 그냥 CachedAnimInstance 쓰면 됐는데;;
+
+	// 부활 직후 다른 애니메이션 재생 방지
+	CachedAnimInstance->SetIsNormalDead(m_bIsNormalDead);
+	CachedAnimInstance->SetIsCuttingDead(m_bIsCuttingDead);
+	CachedAnimInstance->SetIsStanding(m_bIsStanding);
+	CachedAnimInstance->SetCurrentPawnSpeed(0);	// 애니메이션은 idle로 전환
+	CachedAnimInstance->SetIsStandingStill(false);	// 숨고르기 애니메이션도 초기화
 }
 
 void ABaseZombie::Resurrect()

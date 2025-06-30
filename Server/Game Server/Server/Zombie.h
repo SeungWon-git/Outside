@@ -253,8 +253,8 @@ public:
 
     void ReachFinalDestination();
 
-    // void ClearALLBlackBoard();
-    void ClearBlackBoard(bool clear_flag[6]);       // 0-PlayerInㄴight, 1-HeardShouting, 2-FootSound, 3-HordeSound, 4-KnewPlayerLocation, 5-RandPatrolSet
+    // 0-PlayerInsight, 1-HeardShouting, 2-FootSound, 3-HordeSound, 4-KnewPlayerLocation, 5-RandPatrolSet
+    void ClearBlackBoard(bool clear_flag[6]);   
 
     void UpdatePath();
     // 얜 랜덤 패트롤, 랜덤 발소리 위치용 - 함수 오버로딩

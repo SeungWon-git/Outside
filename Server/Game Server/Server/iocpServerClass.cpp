@@ -545,12 +545,12 @@ void IOCP_CORE::ServerOn()
 	bServerOn = true;
 }
 
-void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::steady_clock::time_point currentTime, std::chrono::steady_clock::time_point& lastGTTime)
+void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::steady_clock::time_point currentTime, std::chrono::steady_clock::time_point& lastGTTime, std::chrono::steady_clock::time_point& lastGameClearSendTime)
 {
 	GT_deltaTime = currentTime - lastGTTime;
 
 	// 게임 타이머 계산 
-	if (GT_deltaTime.count() > GAME_TIMER_INTERVAL) {	// 5ms 이상 경과 시만 시간 누적 => 이 설정 없으면 시간이 훨어얼씬 더 빨리 측정됨
+	if (GT_deltaTime.count() > GAME_TIMER_INTERVAL) {	// 5ms 이상 경과 시에만 시간 누적 => 이 설정 없으면 시간이 훨어얼씬 더 빨리 측정됨
 		// deltaTime을 누적하여 GameTime에 더함
 		GameTime += GT_deltaTime.count();  // 초 단위 (* -> 그냥 이렇게 부동소수점 누적하면, 나중에 시간 지날 수록 정확도 떨어짐)
 		lastGTTime = currentTime;
@@ -591,7 +591,14 @@ void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::stea
 		room_states[roomid].Escape_Root = 0;    // 탈출방법 0(실패)으로 초기화 => 이전에 문을 연적이 있으면 해당 변수 갱신되서, 게임오버에서 탈출방법 실패가 안뜸;;
 
 		// 전송작업
-		Send_GameEnd(alive_cnt, dead_cnt, bestkill_cnt, bestkill_player, roomid);
+		std::chrono::duration<float> lastSend_deltaTime = currentTime - lastGameClearSendTime;
+		if (lastSend_deltaTime.count() > 1.0f) {	// 1초 텀 주기
+			Send_GameEnd(alive_cnt, dead_cnt, bestkill_cnt, bestkill_player, roomid);	// 텀 없이 보내면 엄청나게 많이 보내서 패킷 병목현상 일어남 => 패킷 이미 받았다고 확인하기도 전에 또 보내고 또 보내고 해서 문제!
+
+			lastGameClearSendTime = currentTime;
+
+			//cout << "게임 클리어 패킷 전송!" << endl;
+		}
 	}
 }
 
@@ -605,6 +612,7 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 	std::chrono::steady_clock::time_point currentTime;
 	std::chrono::steady_clock::time_point lastBTTime = std::chrono::high_resolution_clock::now();
 	std::chrono::steady_clock::time_point lastGTTime = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point lastGameClearSendTime = std::chrono::high_resolution_clock::now();
 
 	
 	while (true) {
@@ -651,7 +659,7 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 
 		currentTime = std::chrono::high_resolution_clock::now();
 		// 게임 10분 타이머 계산
-		GameTimerEndCheck(roomid, GameTime, currentTime, lastGTTime);
+		GameTimerEndCheck(roomid, GameTime, currentTime, lastGTTime, lastGameClearSendTime);
 
 		// BT 작동 인터벌 설정
 		BT_deltaTime = currentTime - lastBTTime;
