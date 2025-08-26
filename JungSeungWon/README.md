@@ -149,6 +149,6 @@
 ---
 
 ## 📎 기타
-- GitHub 저장소: 👉 [GitHub 저장소 바로가기](https://github.com/SeungWon-git/Outside)
+- 소스 코드: 👉 [서버 소스 코드 폴더](https://github.com/SeungWon-git/Outside/tree/main/Server/Game%20Server/Server), [언리얼-클라 소스 코드 폴더](https://github.com/SeungWon-git/Outside/tree/main/unreal/Project/Source/Project)
 - 최종 보고서:  📃 [최종 보고서(한글파일)](https://github.com/SeungWon-git/Outside/blob/main/%EB%B3%B4%EA%B3%A0%EC%84%9C/2025_%EA%B2%8C%EC%9E%84%EA%B3%B5%ED%95%99%EA%B3%BC_%EC%B5%9C%EC%A2%85_%EB%B3%B4%EA%B3%A0%EC%84%9C_%EC%96%91%EC%8B%9D%20-%20%EC%95%84%EC%9B%83%EC%82%AC%EC%9D%B4%EB%93%9C_%EC%A0%95%EC%8A%B9%EC%9B%90%EC%A1%B0%EC%83%81%EC%A4%80%EC%9D%B4%ED%95%9C%EC%A3%BC.hwp)
 - Contributors Graphs: [🔗 View Contributors Graph](https://github.com/SeungWon-git/Outside/graphs/contributors)
