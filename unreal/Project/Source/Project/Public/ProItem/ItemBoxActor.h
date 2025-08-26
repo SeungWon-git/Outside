@@ -78,6 +78,6 @@ public:
 	float Durability_Max = 0;
 
 public:
-	uint32 ItemBoxId = 0;
+	uint32 ItemBoxId = 0;	// 인덱스 +1 값! (패킷 통신 0 최적화 피하려고) => 그래서 패킷으로 보낼때 이걸로 보냄
 
 };

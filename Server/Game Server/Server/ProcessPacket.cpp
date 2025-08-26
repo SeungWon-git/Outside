@@ -29,17 +29,17 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
         //printf("SendDatas!! Playerid=#%d\n", id);
     }
 
-    if (clientInfo->roomid != 0 && !zombieDB[clientInfo->roomid].empty()) {
+    if (clientInfo->roomid != 0 && !zombieDB[clientInfo->roomid].empty()) { // ==> 항상 두번씩 보냄 (이유랑 왜 어떻게 그런지는 사실 잘 모르겠음; 한번으로는 잘 못 받아서 그랬던가?)=>그냥 너무 빨리 보내서 두번 보내지는 듯
         if (!clientInfo->send_zombie) {
             zombieControllers[clientInfo->roomid]->SendZombieData(clientInfo->id);
         }
 
         if (clientInfo->send_zombie && !clientInfo->send_item) {
-            itemclass->SendItemData(clientInfo->id);
+            itemControllers[clientInfo->roomid]->SendItemData(clientInfo->id);
         }
 
         if (clientInfo->send_zombie && clientInfo->send_item && !clientInfo->send_car) {
-            itemclass->SendCarData(clientInfo->id);
+            itemControllers[clientInfo->roomid]->SendCarData(clientInfo->id);
         }
     }
 
@@ -60,14 +60,18 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
 
         // 게임룸에 플레이어 추가
         if (clientInfo->roomid == 0) {
+            //out << "g_players (룸 아이디는?): " << g_players[id]->roomid << endl;
             clientInfo->roomid = Packet.roomnum();
+            //cout << "g_players (룸 아이디는?): " << g_players[id]->roomid << endl;
             AddPlayerToRoom(Packet.roomnum(), clientInfo);
+            cout << "Player " << clientInfo->id << " 의 게임 ID: " << Packet.playerid() << endl;
         }
 
 
         // 지금은 수정 됐지만 혹시해서 남김 -> 클라 플레이어 초기화 id 설정값이 99인데 이걸 전송 받는 경우가 생겼었다
         if (Packet.playerid() != 99) {
             //playerDB[Packet.playerid()] = pl; //-> 이렇게 사용하면 초기화 빼먹은 값 더미 값 씌워질 수 있음
+            //* playerDB 새로 생성
             playerDB[Packet.roomnum()][Packet.playerid()].username = Packet.username();
 
             playerDB[Packet.roomnum()][Packet.playerid()].x = Packet.x();
@@ -359,6 +363,32 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
                 }
             }
         }
+
+        // ==== 해당 변수들이 어떻게 작동하는지 디버깅용
+        /*cout << "<<<<< roomId: " << roomId << " >>>>>" << endl;
+
+        cout << "--- playerDB[roomId]" << endl;
+        for (const auto player : playerDB[roomId]) {
+            cout << "playerDB.first: " << player.first << endl;
+            cout << "playerDB.second.username: " << player.second.username << endl;
+        }
+
+        cout << "--- g_players" << endl;
+        for (const auto player : g_players) {
+            cout << "g_player.first: " << player.first << endl;
+            cout << "g_player.second->id: " << player.second->id << endl;
+            cout << "g_player.second->roomid: " << player.second->roomid << endl;
+            cout << "g_player.second->connected: " << player.second->connected << endl;
+        }
+
+        cout << "--- room_players[roomId]" << endl;
+        for (const auto player : room_players[roomId]) {
+            cout << "room_player.first: " << player.first << endl;
+            cout << "room_player.second->id: " << player.second->id << endl;
+            cout << "room_player.second->roomid: " << player.second->roomid << endl;
+            cout << "room_player.second->connected: " << player.second->connected << endl;
+        }*/
+
         return true;
     }
 
@@ -515,23 +545,39 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
     case 17:
     {
 #ifdef ENABLE_PACKET_LOG
-        printf("\n[ No. %3u ] Destroy Item Packet Received !!\n", id);
+        printf("\n[ No. %3u ] Destroy ItemBox Packet Received !!\n", id);
 #endif
         Protocol::destroy_item Packet;
         Packet.ParseFromArray(packet.data(), packet.size());
         string serializedData;
         Packet.SerializeToString(&serializedData);
 
-        // 모든 연결된 클라이언트에게 패킷 전송 (브로드캐스팅)
+        //printf("Get itemId %d\n", Packet.itemid());
+
         int roomId = clientInfo->roomid;
 
-        if (room_players.find(roomId) != room_players.end()) {
-            for (const auto& [playerId, playerInfo] : room_players[roomId]) {
-                if (playerInfo != nullptr && playerId != id) {
-                    IOCP_SendPacket(playerId, serializedData.data(), serializedData.size());
+        // 아이템 중복 획득 방지 코드
+        if (itemControllers.find(roomId) != itemControllers.end()) {
+            for (auto& item : itemControllers[roomId]->items) {
+
+                if (item.itemID == Packet.itemid() // 해당 아이템 찾기
+                    && item.owner_playerid == 0) {  // 해당 아이템를 이미 보유한 플레이어가 있는지 확인 (0=보유한 플레이어 없음)
+                    item.owner_playerid = id;   // 없다면 해당 플레이어 아이디 저장
+
+                    // 모든 연결된 클라이언트에게 패킷 전송 (브로드캐스팅)
+                    if (room_players.find(roomId) != room_players.end()) {
+                        for (const auto& [playerId, playerInfo] : room_players[roomId]) {
+                            if (playerInfo != nullptr) {    // 자기 자신한테도 다시 패킷 전송해야함 => 패킷을 받아야 진짜 해당 아이템을 획득하도록 바꿨으니
+                                IOCP_SendPacket(playerId, serializedData.data(), serializedData.size());
+                            }
+                        }
+                    }
+
                 }
+
             }
         }
+
         return true;
     }
 
@@ -547,8 +593,10 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
         int playerid = Packet.playerid();
 
 #ifdef ENABLE_PACKET_LOG
-        printf("%d item\n", Packet.itemid());
+        printf("%d item - (1: Car Key, 2: Roof Key)\n", Packet.itemid());
 #endif
+
+        //printf("Get key itemId %d\n", Packet.itemboxid());
 
         string serializedData;
         Packet.SerializeToString(&serializedData);
@@ -574,11 +622,24 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
         string DserializedData;
         destroyPacket.SerializeToString(&DserializedData);
 
-        if (room_players.find(roomId) != room_players.end()) {
-            for (const auto& [playerId, playerInfo] : room_players[roomId]) {
-                if (playerInfo != nullptr && playerId != id) {
-                    IOCP_SendPacket(playerId, DserializedData.data(), DserializedData.size());
+        // 키 아이템 중복 획득 방지 코드
+        if (itemControllers.find(roomId) != itemControllers.end()) {
+            for (auto& item : itemControllers[roomId]->items) {
+
+                if (item.itemID == itemboxid // 해당 아이템 찾기
+                    && item.owner_playerid == 0) {  // 해당 아이템를 이미 보유한 플레이어가 있는지 확인 (0=보유한 플레이어 없음)
+                    item.owner_playerid = id;   // 없다면 해당 플레이어 아이디 저장
+
+                    if (room_players.find(roomId) != room_players.end()) {
+                        for (const auto& [playerId, playerInfo] : room_players[roomId]) {
+                            if (playerInfo != nullptr) {    // 자기 자신한테도 다시 패킷 전송해야함 => 패킷을 받아야 진짜 해당 아이템을 획득하도록 바꿨으니
+                                IOCP_SendPacket(playerId, DserializedData.data(), DserializedData.size());
+                            }
+                        }
+                    }
+
                 }
+
             }
         }
 
@@ -635,12 +696,28 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
 
         if (Packet.complete_type() == 1) {
             clientInfo->send_zombie = true;
+            //printf("Recv-send Zombie spawn packets complete\n");
         }
         else if (Packet.complete_type() == 2) {
             clientInfo->send_item = true;
+            //printf("Recv-send Item spawn packets complete\n");
         }
         else if (Packet.complete_type() == 3) {
             clientInfo->send_car = true;
+            //printf("Recv-send Car spawn packets complete\n");
+        }
+        else if (Packet.complete_type() == 4) {
+            clientInfo->send_game_clear = true;  // g_players 업데이트
+
+            int roomId = clientInfo->roomid;
+
+            if (room_players.find(roomId) != room_players.end()) {
+                if (room_players[roomId].find(id) != room_players[roomId].end()) {
+                    room_players[roomId].find(id)->second->send_game_clear = true;  // room_players 업데이트
+                }
+            }
+
+            //printf("Recv-send GameClear packet complete. PlayerID:%3u, RoomID:%3u\n", id, roomId);
         }
 
         return true;
@@ -657,7 +734,33 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, const std::string& packet) {
         string serializedData;
         Packet.SerializeToString(&serializedData);
 
+        //printf("Drop itemId %d\n", Packet.itemid());
+
         int roomId = clientInfo->roomid;
+
+        if (itemControllers[roomId]->items.size() == 60 && Packet.itemid() > 60 && Packet.itemname() == "SuitCase") {  // 회사원 시작 아이템인 서류가방을 떨구면 아이템 벡터에 추가 => 추후에 다시 줍기가 가능하게
+            Item_Data employeeSuitCase;
+
+            employeeSuitCase.itemID = Packet.itemid();
+            employeeSuitCase.itemName = Packet.itemname();
+            employeeSuitCase.itemClass = Packet.itemclass();
+            employeeSuitCase.texturePath = Packet.texture_path();
+            employeeSuitCase.count = Packet.count();
+            //employeeSuitCase.itemFloor = ;
+            employeeSuitCase.x = Packet.posx();
+            employeeSuitCase.y = Packet.posy();
+            employeeSuitCase.z = Packet.posz();
+
+            itemControllers[roomId]->items.push_back(employeeSuitCase);
+        }
+
+        if (itemControllers.find(roomId) != itemControllers.end()) {
+            for (auto& item : itemControllers[roomId]->items) {
+                if (item.itemID == Packet.itemid()) { // 해당 아이템 찾기
+                    item.owner_playerid = 0;    // 바닥에 다시 떨구며 아이템 소유자 초기화
+                }
+            }
+        }
 
         if (room_players.find(roomId) != room_players.end()) {
             for (const auto& [playerId, playerInfo] : room_players[roomId]) {
@@ -783,12 +886,14 @@ void IOCP_CORE::Send_GameEnd(int alive_cnt, int dead_cnt, int bestkill_cnt, std:
     clear_packet.set_best_kill_player(bestkill_player);
 
     for (const auto& player : room_players[roomid]) {
+        if (player.second->send_game_clear == false) {  // 아직 게임 클리어 패킷 송수신이 확인 안된 플레이어들에게만
 
-        clear_packet.set_my_killcount(playerDB[roomid][player.first].killcount);
+            clear_packet.set_my_killcount(playerDB[roomid][player.first].killcount);
 
-        string serializedData;
-        clear_packet.SerializeToString(&serializedData);
-        IOCP_SendPacket(player.first, serializedData.data(), serializedData.size());
+            string serializedData;
+            clear_packet.SerializeToString(&serializedData);
+            IOCP_SendPacket(player.first, serializedData.data(), serializedData.size());
+        }
     }
 }
 
@@ -797,14 +902,16 @@ void IOCP_CORE::AddPlayerToRoom(int roomId, PLAYER_INFO* clientInfo) {
 
     // 해당 roomId가 존재하지 않으면 방 생성
     if (room_players.find(roomId) == room_players.end()) {
+        //* room_players 새로 생성
         room_players[roomId] = std::unordered_map<int, PLAYER_INFO*>();
         ZombieBT* tmp_zbt = new ZombieBT();
         zombie_bt_map[roomId] = *tmp_zbt;
         zombie_threads.emplace_back(&IOCP_CORE::Zombie_BT_Thread, this, roomId);
         zombieControllers[roomId] = new ZombieController(this, roomId);
+        itemControllers[roomId] = new ItemController(this, roomId);
         std::cout << "Room " << roomId << " created." << std::endl;
     }
-
+    
     room_players[roomId][clientInfo->id] = clientInfo;
     std::cout << "Player " << clientInfo->id << " added to room " << roomId << std::endl;
 }

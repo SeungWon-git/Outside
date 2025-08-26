@@ -313,7 +313,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 				}
 				break;
 			}
-			case 2: // Zombie 메시지 타입 값
+			case 2: // Zombie 메시지 타입 값 ==> 사용 안함 (예전에 사용하던 패킷)
 			{
 				Protocol::Zombie ZombiePacket;
 				if (ZombiePacket.ParseFromArray(buffer.data(), buffer.size()))
@@ -366,7 +366,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 				break;
 			}
 
-			case 8:
+			case 8:	//==> 좀비 생성 패킷
 			{
 				Protocol::ZombieDataList zombieDataList;
 				if (zombieDataList.ParseFromArray(buffer.data(), buffer.size()))
@@ -380,7 +380,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 							FVector NewLocation(zombie.x(), zombie.y(), zombie.z());
 							FRotator NewRotation(zombie.pitch(), zombie.yaw(), zombie.roll());
 							Q_zombie.push(ZombieData(zombie.zombieid(), NewLocation, NewRotation, zombie.zombietype()));
-							UE_LOG(LogNet, Display, TEXT("ZombieSpawnData recv: %d, playerid = %d"), zombie.zombieid(), MyPlayerId);
+							//UE_LOG(LogNet, Display, TEXT("ZombieSpawnData recv: %d, playerid = %d"), zombie.zombieid(), MyPlayerId);
 						}
 					}
 
@@ -394,7 +394,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 				}
 				break;
 			}
-			case 10:
+			case 10:	//==> 좀비 움직임 동기화 패킷
 			{
 				Protocol::ZombiePathList zombiePathList;
 				if (zombiePathList.ParseFromArray(buffer.data(), buffer.size())) {
@@ -477,7 +477,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 						for (const auto& item : itemdatalist.items()) {
 							Q_setitem.push(Set_Item(item.itemid(), item.itemname(), item.itemclass(), item.texture_path(),
 								item.count(), item.floor(), FVector(item.posx(), item.posy(), item.posz())));
-							//UE_LOG(LogNet, Display, TEXT("Set Itempacket"));
+							//UE_LOG(LogNet, Display, TEXT("ItemSpawnData recv: %d, playerid = %d"), item.itemid(), MyPlayerId);
 						}
 					}
 
@@ -503,7 +503,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 						for (const auto& car : cardatalist.cars()) {
 							Q_setcar.push(Set_Car(car.carid(), car.carname(), FVector(car.posx(), car.posy(), car.posz()), FRotator(car.pitch(), car.yaw(), car.roll()),
 								car.carkeyname()));
-							//UE_LOG(LogNet, Display, TEXT("Set carpacket"));
+							//UE_LOG(LogNet, Display, TEXT("CarSpawnData recv: %d, playerid = %d"), car.carid(), MyPlayerId);
 						}
 
 					}
@@ -556,7 +556,7 @@ void ClientSocket::ProcessPacket(const std::vector<char>& buffer)
 				{
 					Q_gclear.push(GameClear(clearpacket.root(), clearpacket.alive_players(), clearpacket.dead_players(), clearpacket.open_player(),
 						clearpacket.my_killcount(), clearpacket.best_killcount(), clearpacket.best_kill_player()));
-					UE_LOG(LogNet, Display, TEXT("Game Clear"));
+					UE_LOG(LogNet, Warning, TEXT("Game Clear"));
 				}
 				break;
 			}

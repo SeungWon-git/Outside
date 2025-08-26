@@ -100,5 +100,6 @@ public:
 	float PreviousHp = 0.f;
 
 	float idleDuration = 0.f;
-};
+	float lookingaround_idleDuration = 0.f;
 
+};

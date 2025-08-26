@@ -80,7 +80,15 @@ void ZombiePathfinder::FindPath(vector<tuple<float, float, float>>& t)
         }
     }
     else {
-        cout << "[Error] No path found.\n";
+        cout << "[Error] No path found. - ";
+        cout << "RoomID: " << roomID << ", ZombieID: " << ownerZombieID;
+
+        if (PatrolType == 0) {
+            cout << " - Path to Target" << endl;
+        }
+        else if (PatrolType == 1) {
+            cout << " - Check Random Path" << endl;
+        }
     }
 }
 

@@ -41,5 +41,5 @@ public:
 
 	~Player();
 
-	int send_cnt = 0;
+	int send_cnt = 0;	// 안 쓰는 변수 같음
 };

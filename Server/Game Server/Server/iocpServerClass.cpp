@@ -28,12 +28,13 @@
 
 std::unordered_map<int, ZombieBT> zombie_bt_map;
 std::unordered_map<int, RoomState> room_states;
-std::unordered_map<unsigned int, PLAYER_INFO*> g_players;
-std::unordered_map<int, std::unordered_map<int, PLAYER_INFO*>> room_players;
-std::unordered_map<int, std::unordered_map<int, Player>> playerDB;
+std::unordered_map<unsigned int, PLAYER_INFO*> g_players;	
+std::unordered_map<int, std::unordered_map<int, PLAYER_INFO*>> room_players;	
+std::unordered_map<int, std::unordered_map<int, Player>> playerDB;	
 std::unordered_map<int, std::unordered_map<int, Player>> playerDB_BT;
 
 std::unordered_map<int, ZombieController*> zombieControllers;
+std::unordered_map<int, ItemController*> itemControllers;
 
 std::unordered_map<tuple<float, float, float>, vector<pair<tuple<float, float, float>, float>>, TupleHash> g_EdgesMapB2;
 std::unordered_map<tuple<float, float, float>, vector<pair<tuple<float, float, float>, float>>, TupleHash> g_EdgesMapB1;
@@ -79,8 +80,6 @@ IOCP_CORE::IOCP_CORE()
 	filePath = "EdgesF2.txt";
 	UpdateEdgesMap(unrealFilePath + filePath, filePath);
 	LoadEdgesMap(filePath, g_valispositionsF2, g_EdgesMapF2);
-
-	itemclass = new ItemController(*this);
 
 	IOCP_GetServerIpAddress();
 	CheckThisCPUcoreCount();
@@ -368,6 +367,7 @@ void IOCP_CORE::IOCP_AcceptThread()
 		user->recv_overlap.wsabuf.len = sizeof(user->recv_overlap.iocp_buffer);
 		user->isInGame = false;
 
+		//* g_players 새로 생성
 		g_players[user->id] = user;
 
 		/* 주변 클라이언트에 대해 뿌릴 정보 뿌리고, 시야 리스트나 처리해야 할 정보들도 함께 넣는다. */
@@ -392,7 +392,7 @@ void IOCP_CORE::DisconnectClient(unsigned int id) {
 		playerDB[user->roomid].erase(id);
 
         delete user;
-        g_players.erase(id);
+		g_players.erase(id);
     }
 }
 
@@ -545,12 +545,12 @@ void IOCP_CORE::ServerOn()
 	bServerOn = true;
 }
 
-void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::steady_clock::time_point currentTime, std::chrono::steady_clock::time_point& lastGTTime)
+void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::steady_clock::time_point currentTime, std::chrono::steady_clock::time_point& lastGTTime, std::chrono::steady_clock::time_point& lastGameClearSendTime)
 {
 	GT_deltaTime = currentTime - lastGTTime;
 
 	// 게임 타이머 계산 
-	if (GT_deltaTime.count() > GAME_TIMER_INTERVAL) {	// 5ms 이상 경과 시만 시간 누적 => 이 설정 없으면 시간이 훨어얼씬 더 빨리 측정됨
+	if (GT_deltaTime.count() > GAME_TIMER_INTERVAL) {	// 5ms 이상 경과 시에만 시간 누적 => 이 설정 없으면 시간이 훨어얼씬 더 빨리 측정됨
 		// deltaTime을 누적하여 GameTime에 더함
 		GameTime += GT_deltaTime.count();  // 초 단위 (* -> 그냥 이렇게 부동소수점 누적하면, 나중에 시간 지날 수록 정확도 떨어짐)
 		lastGTTime = currentTime;
@@ -563,19 +563,21 @@ void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::stea
 		// 점수판 계산
 		int alive_cnt = 0;
 		int dead_cnt = 0;
-		int disconnected = 0;
+		//int disconnected = 0;
 		int bestkill_cnt = 0;
 		std::string bestkill_player = "None";
 
 		for (const auto player : playerDB[roomid]) {
-			if (g_players.find(player.first) == g_players.end()) { // 연결이 끊긴 플레이어라면  
-				disconnected++;
-				if (bestkill_cnt < player.second.killcount) {   // 연결이 끊겼어도 젤 마니 좀비를 죽였을 수도 있으니
-					bestkill_cnt = player.second.killcount;
-					bestkill_player = player.second.username;
-				}
-				continue;
-			}
+			//if (g_players.find(player.first) == g_players.end()) { // 연결이 끊긴 플레이어라면  
+			//	disconnected++;
+			//	if (bestkill_cnt < player.second.killcount) {   // 연결이 끊겼어도 젤 마니 좀비를 죽였을 수도 있으니
+			//		bestkill_cnt = player.second.killcount;
+			//		bestkill_player = player.second.username;
+			//	}
+			//	
+			//	// ==> 여기 아예 작동 X, playerDB, g_player 둘다 플레이어가 연결 끊으면 erase()해서 연결 끊긴 플레이어 검색 자체가 안됨 => 즉 여기 조건문 들어올 일도 없음
+			//	continue;
+			//}
 
 			// 게임 시간 초과 엔딩은 그냥 모든 플레이어가 실패라고 띄워야해서
 			dead_cnt++;
@@ -589,8 +591,14 @@ void IOCP_CORE::GameTimerEndCheck(int roomid, float& GameTime, std::chrono::stea
 		room_states[roomid].Escape_Root = 0;    // 탈출방법 0(실패)으로 초기화 => 이전에 문을 연적이 있으면 해당 변수 갱신되서, 게임오버에서 탈출방법 실패가 안뜸;;
 
 		// 전송작업
-		// 세션 나누면서 마지막 인자 추가해야할듯.. 지금 상태에서는 서버에 접속한 전부에게 전송
-		Send_GameEnd(alive_cnt, dead_cnt, bestkill_cnt, bestkill_player, roomid);
+		std::chrono::duration<float> lastSend_deltaTime = currentTime - lastGameClearSendTime;
+		if (lastSend_deltaTime.count() > 1.0f) {	// 1초 텀 주기
+			Send_GameEnd(alive_cnt, dead_cnt, bestkill_cnt, bestkill_player, roomid);	// 텀 없이 보내면 엄청나게 많이 보내서 패킷 병목현상 일어남 => 패킷 이미 받았다고 확인하기도 전에 또 보내고 또 보내고 해서 문제!
+
+			lastGameClearSendTime = currentTime;
+
+			//cout << "게임 클리어 패킷 전송!" << endl;
+		}
 	}
 }
 
@@ -604,6 +612,7 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 	std::chrono::steady_clock::time_point currentTime;
 	std::chrono::steady_clock::time_point lastBTTime = std::chrono::high_resolution_clock::now();
 	std::chrono::steady_clock::time_point lastGTTime = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point lastGameClearSendTime = std::chrono::high_resolution_clock::now();
 
 	
 	while (true) {
@@ -635,7 +644,7 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 
 				// 접속이 끊긴 것도 검사
 				if (room_players[roomid].size() == 0) {
-					cout << "방-" << roomid << " 에 더이상 연결된 플레이어가 없습니다... => (g_players.size() == 0)" << endl;
+					cout << "방-" << roomid << " 에 더이상 연결된 플레이어가 없습니다... => (room_players[roomid].size() == 0)" << endl;
 					cout << endl;
 
 					result = "NO PLAYER";
@@ -650,7 +659,7 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 
 		currentTime = std::chrono::high_resolution_clock::now();
 		// 게임 10분 타이머 계산
-		GameTimerEndCheck(roomid, GameTime, currentTime, lastGTTime);
+		GameTimerEndCheck(roomid, GameTime, currentTime, lastGTTime, lastGameClearSendTime);
 
 		// BT 작동 인터벌 설정
 		BT_deltaTime = currentTime - lastBTTime;
@@ -806,6 +815,16 @@ void IOCP_CORE::Zombie_BT_Thread(int roomid)
 
 		// send_path 통신작업
 		for (const auto player : playerDB_BT[roomid]) {
+			if (g_players.find(player.first) == g_players.end()) { // 연결이 끊긴 플레이어라면
+				continue;	// 보내지 X
+			}
+			else if (g_players[player.first]->connected == false) { // 연결이 끊긴 플레이어라면
+				continue;	// 보내지 X
+			}
+			else if (g_players[player.first]->send_zombie == false || g_players[player.first]->send_item == false || g_players[player.first]->send_car == false) {	// 아직 월드 생성 중이라면
+				continue;	// 아직 보내지 X
+			}
+
 			Protocol::ZombiePathList zPathList;
 			zPathList.set_packet_type(10);
 

@@ -16,6 +16,7 @@
 #include "CanNotAttack.h"
 #include "Attack.h"
 #include "MoveTo.h"
+#include "LookAround.h"
 
 
 //======[[좀비 BT 생성]]======//
@@ -48,6 +49,8 @@ ZombieBT::ZombieBT()
 	t_moveto = new T_MoveTo;
 	//[Attack-Task]
 	t_attack = new T_Attack;
+	//[LookAround-Task]
+	t_lookaround = new T_LookAround;
 
 
 	MakeZombieBT();
@@ -64,6 +67,7 @@ void ZombieBT::MakeZombieBT()
 	sel_detect->AddChild(seq_hasfootsound);
 	sel_detect->AddChild(seq_hordeaction);
 	sel_detect->AddChild(seq_hasinvestigated);
+	sel_detect->AddChild(t_lookaround);
 	sel_detect->AddChild(seq_nothaslastknownplayerlocation);
 
 	//<Selector-CanSeePlayer> 할당 -> 필요 자식노드들 '순서대로' 삽입

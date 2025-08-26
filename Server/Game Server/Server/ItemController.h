@@ -26,6 +26,7 @@ struct Item_Data {
 	int count;
 	int itemFloor;
 	float x, y, z;
+	int owner_playerid = 0;
 
 	Item_Data()
 		: itemID(0), itemName(""), itemClass(0), texturePath(""),
@@ -86,7 +87,7 @@ struct CarKeyRandom
 class ItemController
 {
 public:
-	ItemController(IOCP_CORE& mainServer);
+	ItemController(IOCP_CORE* mainServer, int roomid);
 	~ItemController();
 
 	void ItemRandomLocationSetting();
@@ -111,5 +112,7 @@ public:
 
 	std::vector<Item_Data> items;
 	std::vector<Car_Data> cars;
+
+	int item_roomid;
 };
 

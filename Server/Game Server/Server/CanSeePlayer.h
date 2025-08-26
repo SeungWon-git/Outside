@@ -92,7 +92,17 @@ public:
             zom.KnewPlayerLocation = true;
 
             zom.HeardFootSound = false;     // 발소리를 먼저 듣고 플레이어를 발견한 경우, 좀비가 후에 플레이어를 놓치면 이전에 들은 발소리를 따라가는 게 아닌 플레이어를 마지막으로 본 위치를 탐색하도록 하기 위해서
-                                            // 문제는 없는데 이런 방식으로 작동하는게 맞는 거 같다고 생각해서 (플레이어를 눈으로 보면 발소리는 까먹는 다!)
+                                            // 문제는 없는데 이런 방식으로 작동하는게 맞는 거 같다고 생각해서 (플레이어를 눈으로 보면 이전 기억하던 발소리는 까먹는다!)
+                                            // 노노 이거 안 했으면 문제 있었음;; => 호드 사운드는 까먹고 안 했더니 플레이어 쫒아오다가 잠깐 놓치니까 저 뒤로 이전에 들은 호드 사운드 쪽으로 가버림;;
+            
+            zom.HeardHordeSound = false;    // 호드 사운드도 잊기
+            
+            zom.HeardShouting = false;      // 샤우팅도
+
+            // 더 간단하게는 이렇게...
+            //bool clear_flag[6] = {};
+            //clear_flag[0] = false; clear_flag[1] = true; clear_flag[2] = true; clear_flag[3] = true; clear_flag[4] = false; clear_flag[5] = false;
+            //zom.ClearBlackBoard(clear_flag);
 
             CanSeePlayer(zom);
         }

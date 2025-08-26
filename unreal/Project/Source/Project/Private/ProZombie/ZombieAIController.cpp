@@ -64,8 +64,21 @@ void AZombieAIController::ZombieMoveTo(float deltasecond, int& indx)
 
 	if (OwnerZombie->targetType == OwnerZombie->LOOKINGAROUND) {	// 좀비가 현재 주위 둘러보기 상태라면 MoveTo 정지!
 		OwnerZombie->CachedAnimInstance->SetCurrentPawnSpeed(0);	// 애니메이션은 idle로 전환
+		
+
+		lookingaround_idleDuration += deltasecond;
+
+		if (lookingaround_idleDuration >= 8.f) {	// 만약 좀비가 제자리에서 8초 이상 있을 시에 => 숨고르기 (주위둘러보기 이후 바로 숨고르기에 들어 갈 경우 서버에서 최적화 때문에 통신을 안 보내기 때문에 따로 처리해줘야함)
+			OwnerZombie->CachedAnimInstance->SetIsStandingStill(true);	// 애니메이션 standing still로 전환
+		}
+		else {		// 도망치기->휴식(숨고르기)->주위 둘러보기 에서 standing still 애니메이션으로 주위 둘러보기 하는 문제 때문에
+			OwnerZombie->CachedAnimInstance->SetIsStandingStill(false);		// 다시 초기화
+		}
 
 		return;
+	}
+	else {
+		lookingaround_idleDuration = 0;	// 주위 둘러보기 끝나면 다시 초기화
 	}
 
 
@@ -101,7 +114,7 @@ void AZombieAIController::ZombieMoveTo(float deltasecond, int& indx)
 		if (idleDuration >= 0.3f) {	// 만약 좀비가 제자리에 0.3초 이상 있을 시에
 			OwnerZombie->CachedAnimInstance->SetCurrentPawnSpeed(0);	// 애니메이션 idle로 전환
 
-			if (idleDuration >= 1.5f) {	// 만약 좀비가 제자리에 1.5초 이상 있을 시에
+			if (idleDuration >= 1.5f) {	// 만약 좀비가 제자리에 1.5초 이상 있을 시에 => 숨고르기
 				OwnerZombie->CachedAnimInstance->SetIsStandingStill(true);	// 애니메이션 standing still로 전환
 			}
 		}

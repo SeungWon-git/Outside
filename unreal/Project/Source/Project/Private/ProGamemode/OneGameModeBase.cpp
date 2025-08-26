@@ -350,31 +350,31 @@ int32 AOneGameModeBase::RandomCarKey()
 }
 
 // 최초로 맵에 아이템 생성시 (월드에 아이템 박스 생성)
-void AOneGameModeBase::SpawnItemBoxes(int32 itemboxindex, FName itemname, uint32 itemclass, UTexture2D* texture, int count, uint32 itemfloor, FVector itempos)
+void AOneGameModeBase::SpawnItemBoxes(int32 itemid, FName itemname, uint32 itemclass, UTexture2D* texture, int count, uint32 itemfloor, FVector itempos)
 {
-    int32 itembindex = itemboxindex - 1;
-    if (itembindex >= 60) {
-        UE_LOG(LogTemp, Warning, TEXT("SpawnItemBoxes -> itemboxindex: 60 over!!!! itemboxindex : %d"), itemboxindex);
+    int32 itemboxindex = itemid - 1;
+    if (itemboxindex >= 60) {
+        UE_LOG(LogTemp, Warning, TEXT("SpawnItemBoxes -> itemid: 60 over!!!! itemid : %d"), itemid);
         return;
     }
 
-    if (ItemBoxClasses.Num() <= itembindex) {
-        UE_LOG(LogTemp, Warning, TEXT("SpawnItemBoxes -> itemboxindex: %d"), itembindex);
-        ItemBoxClasses.SetNum(itembindex + 1);
+    if (ItemBoxClasses.Num() <= itemboxindex) {
+        //UE_LOG(LogTemp, Warning, TEXT("SpawnItemBoxes -> itemid: %d"), original_itembox_id);
+        ItemBoxClasses.SetNum(itemboxindex + 1);
     }
 
-    if (ItemBoxClasses.IsValidIndex(itembindex)) {
-        if (!ItemBoxClasses[itembindex]) {
-            ItemBoxClasses[itembindex] = AItemBoxActor::StaticClass();
+    if (ItemBoxClasses.IsValidIndex(itemboxindex)) {
+        if (!ItemBoxClasses[itemboxindex]) {
+            ItemBoxClasses[itemboxindex] = AItemBoxActor::StaticClass();
         }
     }
     else {
-        UE_LOG(LogTemp, Error, TEXT("Invalid index: %d for ItemBoxClasses array"), itembindex);
+        UE_LOG(LogTemp, Error, TEXT("Invalid index: %d for ItemBoxClasses array"), itemboxindex);
         return;
     }
 
 
-    TSubclassOf<AItemBoxActor> SelectedItemBoxClass = ItemBoxClasses[itembindex];
+    TSubclassOf<AItemBoxActor> SelectedItemBoxClass = ItemBoxClasses[itemboxindex];
 
     EItemClass iclass{};
 
@@ -400,7 +400,7 @@ void AOneGameModeBase::SpawnItemBoxes(int32 itemboxindex, FName itemname, uint32
         iclass = EItemClass::NONE;
     }
 
-    // 선택된 아이템 박스 클래스로 아이템 박스 생성 
+    // 선택된 아이템 박스 클래스로 실제로 월드에 아이템 박스 생성 
     AItemBoxActor* SpawnedItemBox = GetWorld()->SpawnActor<AItemBoxActor>(SelectedItemBoxClass, itempos, FRotator::ZeroRotator);
 
     //UE_LOG(LogTemp, Error, TEXT("ITEM___111"));
@@ -409,7 +409,9 @@ void AOneGameModeBase::SpawnItemBoxes(int32 itemboxindex, FName itemname, uint32
         SpawnedItemBox->ItemClassType = iclass;
         SpawnedItemBox->Texture = texture;
         SpawnedItemBox->Count = count;
-        SpawnedItemBox->ItemBoxId = itembindex;
+        SpawnedItemBox->ItemBoxId = itemid;
+
+        //UE_LOG(LogTemp, Warning, TEXT("SpawnItemBoxes -> SpawnedItemBox->ItemBoxOriginalId (= Index + 1) : %d"), itemid);
 
         float durability = 0;
         if (itemclass == 0) {  // 생성하는 박스가 무기일때 내구도 최초 설정
@@ -473,7 +475,7 @@ void AOneGameModeBase::SpawnItemBoxes(int32 itemboxindex, FName itemname, uint32
         SpawnedItemBox->Durability_Max = SpawnedItemBox->Durability;
     }
     
-    UE_LOG(LogTemp, Warning, TEXT("SpawnItemBoxes -> ItemBoxClasses.Num(): %d"), ItemBoxClasses.Num());
+    //UE_LOG(LogTemp, Warning, TEXT("SpawnItemBoxes -> ItemBoxClasses.Num(): %d"), ItemBoxClasses.Num());
 }
 
 void AOneGameModeBase::NullPtrItemBoxesIndex(int32 itemboxindex)
@@ -484,10 +486,9 @@ void AOneGameModeBase::NullPtrItemBoxesIndex(int32 itemboxindex)
 }
 
 // 플레이어가 아이템을 떨굴때 (월드에 아이템 박스 생성, 패킷 전송)
-void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max)
+void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max, int original_itembox_id)
 {
     ABaseCharacter* DefaultPawn = nullptr;
-
 
     UWorld* World = GetWorld();
     if (World) {
@@ -496,7 +497,7 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
             if (DefaultPawn) {
                 //UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem -> GetPlayerId: %d"), DefaultPawn->GetPlayerId());
                 if (DefaultPawn->GetPlayerId() == 99) {
-                    UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem : 99!!!!!!"));
+                    UE_LOG(LogTemp, Log, TEXT("SpawnOnGroundItem : 99 - Myself"));
                     break;
                 }
             }
@@ -508,14 +509,14 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
     // UE_LOG(LogTemp, Warning, TEXT("ItemBoxClassesBefore!!!!!!"));
     //ItemBoxClasses.Add(AItemBoxActor::StaticClass()); // spawn시 .add하지 말고 비어있는 인덱스에다가 아이템 다시 넣어주기
 
-    int32 newindex = INDEX_NONE;
+    int32 dropItemBoxIndex = INDEX_NONE;
     bool bAdded = false;
     for (int32 i = 0; i < ItemBoxClasses.Num(); ++i)
     {
-        if (ItemBoxClasses[i] == nullptr)
+        if (i == original_itembox_id - 1 && ItemBoxClasses[i] == nullptr)    // 원래 아이템박스 인덱스에 알맞게 다시 들어감
         {
             ItemBoxClasses[i] = AItemBoxActor::StaticClass();
-            newindex = i;
+            dropItemBoxIndex = i;
             bAdded = true;
             break;
         }
@@ -523,23 +524,33 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
 
     if (!bAdded)
     {
-        // 빈 자리가 없으면 새로 추가
-        newindex = ItemBoxClasses.Add(AItemBoxActor::StaticClass());
+        // 빈 자리가 없으면 새로 추가 => 회사원 서류가방에만 해당해야함!
+        dropItemBoxIndex = ItemBoxClasses.Add(AItemBoxActor::StaticClass());
+        original_itembox_id = dropItemBoxIndex + 1; // 61이 들어갈 꺼임
     }
 
-    //UE_LOG(LogTemp, Warning, TEXT("SelectedItemBoxClassBefore!!!!!!"));
+    //UE_LOG(LogTemp, Warning, TEXT("SelectedItemBoxClassBefore!"));
     //UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem -> ItemBoxClasses.Num(): %d"), ItemBoxClasses.Num());
-   // UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem ->  GetItemBoxNumber(): %d"), GetItemBoxNumber());
+    // UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem ->  GetItemBoxNumber(): %d"), GetItemBoxNumber());
 
-    if (newindex == INDEX_NONE)
+    if (dropItemBoxIndex == INDEX_NONE)
     {
-        UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem IndexERROR"));
+        UE_LOG(LogTemp, Error, TEXT("SpawnOnGroundItem IndexERROR"));
         return;
     }
-    TSubclassOf<AItemBoxActor> SelectedItemBoxClass = ItemBoxClasses[newindex];
-    FVector itemboxpos = DefaultPawn->GetActorLocation() + FVector(DropPos.X, DropPos.Y, -60.149886f);
 
-    //UE_LOG(LogTemp, Warning, TEXT("SpawnedItemBoxBefore!!!!!!"));
+    // 실제로 아이템 월드에 생성 
+    TSubclassOf<AItemBoxActor> SelectedItemBoxClass;
+    if (ItemBoxClasses.IsValidIndex(dropItemBoxIndex)) {    // 접근 가능한 인덱스인지 먼저 확인
+        SelectedItemBoxClass = ItemBoxClasses[dropItemBoxIndex];
+    }
+    else {
+        UE_LOG(LogTemp, Error, TEXT("ItemBoxClasses.IsValidIndex(dropItemBoxIndex) == false!!!!!! -> dropItemBoxIndex: %d"), dropItemBoxIndex);
+    }
+
+    FVector itemboxpos = DefaultPawn->GetActorLocation() + FVector(DropPos.X, DropPos.Y, -60.149886f + DefaultPawn->RelativeHeight_ZOffset * 1.5);
+
+    //UE_LOG(LogTemp, Warning, TEXT("SpawnedItemBoxBefore!"));
     AItemBoxActor* SpawnedItemBox = GetWorld()->SpawnActor<AItemBoxActor>(SelectedItemBoxClass, itemboxpos, FRotator::ZeroRotator);
 
     if (SpawnedItemBox) {
@@ -549,10 +560,12 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
         SpawnedItemBox->Count = count;
         SpawnedItemBox->Durability = durability;
         SpawnedItemBox->Durability_Max = durability_max;
-        SpawnedItemBox->ItemBoxId = newindex;
+        SpawnedItemBox->ItemBoxId = original_itembox_id;
     }
 
-    //UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItemEND!!!!!!!"));
+    UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem DropItemBoxIndex: %d, original_itembox_id: %d"), dropItemBoxIndex, original_itembox_id);
+
+    //UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItemEND!"));
 
     uint32 iclass{};
 
@@ -578,7 +591,7 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
         iclass = 7;
     }
 
-
+    // 전송 작업
     Protocol::drop_item droppacket;
 
     droppacket.set_packet_type(22);
@@ -591,7 +604,7 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
         std::string TexturePathStr(TCHAR_TO_UTF8(*TexturePath));
         droppacket.set_texture_path(TexturePathStr);
     }
-    droppacket.set_itemid(newindex + 1);
+    droppacket.set_itemid(original_itembox_id);
     droppacket.set_posx(itemboxpos.X);
     droppacket.set_posy(itemboxpos.Y);
     droppacket.set_posz(itemboxpos.Z);
@@ -607,9 +620,8 @@ void AOneGameModeBase::SpawnOnGroundItem(FName itemname, EItemClass itemclass, U
 }
 
 // 플레이어가 죽을때 바닥에 아이템을 모두 떨구는 것 (월드에 아이템 박스 생성, 패킷 전송)
-void AOneGameModeBase::SpawnOnDeathGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max, FVector playerlocation)
+void AOneGameModeBase::SpawnOnDeathGroundItem(FName itemname, EItemClass itemclass, UTexture2D* texture, int count, float durability, float durability_max, FVector playerlocation, int original_itembox_id)
 {
-
     FVector DropPos = playerlocation;
 
     float RandomX = FMath::RandRange(-200.0f, 200.0f);
@@ -618,44 +630,48 @@ void AOneGameModeBase::SpawnOnDeathGroundItem(FName itemname, EItemClass itemcla
     DropPos.X += RandomX;
     DropPos.Y += RandomY;
 
-    int32 newindex = INDEX_NONE;
+    int32 dropItemBoxIndex = INDEX_NONE;
     bool bAdded = false;
-    for (int32 i = 0; i < ItemBoxClasses.Num(); ++i)
+    for (int32 i = 0; i < ItemBoxClasses.Num(); ++i)    // 원래 아이템박스 인덱스에 알맞게 다시 들어감
     {
-        if (ItemBoxClasses[i] == nullptr)
+        if (i == original_itembox_id - 1 && ItemBoxClasses[i] == nullptr)
         {
-            ItemBoxClasses[i] = AItemBoxActor::StaticClass();
-            newindex = i;
+            ItemBoxClasses[i] = AItemBoxActor::StaticClass(); 
+            dropItemBoxIndex = i;
             bAdded = true;
             break;
         }
     }
-
+    
     if (!bAdded)
     {
-        // 빈 자리가 없으면 새로 추가
-        newindex = ItemBoxClasses.Add(AItemBoxActor::StaticClass());
+        // 빈 자리가 없으면 새로 추가 => 회사원 서류가방에만 해당해야함!
+        dropItemBoxIndex = ItemBoxClasses.Add(AItemBoxActor::StaticClass());
+        original_itembox_id = dropItemBoxIndex + 1; // 61이 들어갈 꺼임
     }
 
-    //UE_LOG(LogTemp, Warning, TEXT("SelectedItemBoxClassBefore!!!!!!"));
+    //UE_LOG(LogTemp, Warning, TEXT("SelectedItemBoxClassBefore!"));
     //UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem -> ItemBoxClasses.Num(): %d"), ItemBoxClasses.Num());
-   // UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem ->  GetItemBoxNumber(): %d"), GetItemBoxNumber());
+    // UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem ->  GetItemBoxNumber(): %d"), GetItemBoxNumber());
 
-    if (newindex == INDEX_NONE)
+    if (dropItemBoxIndex == INDEX_NONE)
     {
-        UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItem IndexERROR"));
+        UE_LOG(LogTemp, Warning, TEXT("SpawnOnDeathGroundItem IndexERROR"));
         return;
     }
+
+    // 실제로 아이템 월드에 생성
     TSubclassOf<AItemBoxActor> SelectedItemBoxClass;
-    if (ItemBoxClasses.IsValidIndex(newindex)) {    // 접근 가능한 인덱스인지 먼저 확인
-        SelectedItemBoxClass = ItemBoxClasses[newindex];
+    if (ItemBoxClasses.IsValidIndex(dropItemBoxIndex)) {    // 접근 가능한 인덱스인지 먼저 확인
+        SelectedItemBoxClass = ItemBoxClasses[dropItemBoxIndex];
     }
     else {
-        UE_LOG(LogTemp, Error, TEXT("ItemBoxClasses.IsValidIndex(newindex) == false!!!!!! -> newindex: %d"), newindex);
+        UE_LOG(LogTemp, Error, TEXT("ItemBoxClasses.IsValidIndex(dropItemBoxIndex) == false!!!!!! -> dropItemBoxIndex: %d"), dropItemBoxIndex);
     }
+
     FVector itemboxpos = DropPos + FVector(0.f, 0.f, -60.149886f);
 
-    //UE_LOG(LogTemp, Warning, TEXT("SpawnedItemBoxBefore!!!!!!"));
+    //UE_LOG(LogTemp, Warning, TEXT("SpawnedItemBoxBefore!"));
     AItemBoxActor* SpawnedItemBox = GetWorld()->SpawnActor<AItemBoxActor>(SelectedItemBoxClass, itemboxpos, FRotator::ZeroRotator);
 
     if (SpawnedItemBox) {
@@ -665,10 +681,12 @@ void AOneGameModeBase::SpawnOnDeathGroundItem(FName itemname, EItemClass itemcla
         SpawnedItemBox->Count = count;
         SpawnedItemBox->Durability = durability;
         SpawnedItemBox->Durability_Max = durability_max;
-        SpawnedItemBox->ItemBoxId = newindex;
+        SpawnedItemBox->ItemBoxId = original_itembox_id;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOnGroundItemEND!!!!!!!"));
+    UE_LOG(LogTemp, Warning, TEXT("SpawnOnDeathGroundItem ItemId: %d"), original_itembox_id);
+
+    //UE_LOG(LogTemp, Warning, TEXT("SpawnOnDeathGroundItemEND!"));
 
     uint32 iclass{};
 
@@ -694,7 +712,7 @@ void AOneGameModeBase::SpawnOnDeathGroundItem(FName itemname, EItemClass itemcla
         iclass = 7;
     }
 
-
+    // 전송 작업
     Protocol::drop_item droppacket;
 
     droppacket.set_packet_type(22);
@@ -707,7 +725,7 @@ void AOneGameModeBase::SpawnOnDeathGroundItem(FName itemname, EItemClass itemcla
         std::string TexturePathStr(TCHAR_TO_UTF8(*TexturePath));
         droppacket.set_texture_path(TexturePathStr);
     }
-    droppacket.set_itemid(newindex + 1);
+    droppacket.set_itemid(original_itembox_id);
     droppacket.set_posx(itemboxpos.X);
     droppacket.set_posy(itemboxpos.Y);
     droppacket.set_posz(itemboxpos.Z);
@@ -722,37 +740,35 @@ void AOneGameModeBase::SpawnOnDeathGroundItem(FName itemname, EItemClass itemcla
 }
 
 // 다른 플레이어가 아이템 떨군거 동기화
-void AOneGameModeBase::SpawnOtherCharGroundItemBoxes(int32 itemboxindex, FName itemname, uint32 itemclass, UTexture2D* texture, int count, FVector itempos, float durability, float durability_max)
+void AOneGameModeBase::SpawnOtherCharGroundItemBoxes(int32 original_itembox_id, FName itemname, uint32 itemclass, UTexture2D* texture, int count, FVector itempos, float durability, float durability_max)
 {
-    // 두 if문에 들어가는경우 문제가 있는것 
-    if (itemboxindex >= ItemBoxClasses.Num()) {
-        // 빈 자리가 없으면 새로 추가
-        ItemBoxClasses.SetNum(itemboxindex + 1);
+    int32 dropItemBoxIndex = original_itembox_id - 1;
 
-        if (ItemBoxClasses.IsValidIndex(itemboxindex)) {
-            if (!ItemBoxClasses[itemboxindex]) {
-                ItemBoxClasses[itemboxindex] = AItemBoxActor::StaticClass();
+    if (dropItemBoxIndex >= ItemBoxClasses.Num()) {
+        // 빈 자리가 없으면 새로 추가 => 회사원 서류가방에만 해당해야함!
+        ItemBoxClasses.SetNum(dropItemBoxIndex + 1);    // 61이 들어갈 꺼임 
+
+        if (ItemBoxClasses.IsValidIndex(dropItemBoxIndex)) {
+            if (!ItemBoxClasses[dropItemBoxIndex]) {
+                ItemBoxClasses[dropItemBoxIndex] = AItemBoxActor::StaticClass();
             }
         }
-        UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes -> itemboxindex >= ItemBoxClasses.Num() !!!!!"));
+        UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes -> itemid >= ItemBoxClasses.Num() !!!!! => Employee SuitCase Drop!!"));
     }
-    else if (ItemBoxClasses[itemboxindex] != nullptr) {
-        ItemBoxClasses[itemboxindex] = nullptr;
-        UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes -> ItemBoxClasses[itemboxindex] != nullptr !!!!!"));
+    else if (ItemBoxClasses[dropItemBoxIndex] != nullptr) {
+        ItemBoxClasses[dropItemBoxIndex] = nullptr;
+        UE_LOG(LogTemp, Error, TEXT("SpawnOtherCharGroundItemBoxes -> ItemBoxClasses[itemid] != nullptr !!!!! => 아이템 동기화 오류 발생했음!"));
     }
 
-    TSubclassOf<AItemBoxActor> SelectedItemBoxClass = ItemBoxClasses[itemboxindex];
+    TSubclassOf<AItemBoxActor> SelectedItemBoxClass = ItemBoxClasses[dropItemBoxIndex];
     if (SelectedItemBoxClass == nullptr) {
         SelectedItemBoxClass = AItemBoxActor::StaticClass();
     }
 
     AItemBoxActor* SpawnedItemBox = GetWorld()->SpawnActor<AItemBoxActor>(SelectedItemBoxClass, itempos, FRotator::ZeroRotator);
 
-
     EItemClass itemcl = EItemClass::NORMALWEAPON;
-
     if (itemclass == 1) {
-
         itemcl = EItemClass::NORMALWEAPON;
     }
     else if (itemclass == 2) {
@@ -781,18 +797,19 @@ void AOneGameModeBase::SpawnOtherCharGroundItemBoxes(int32 itemboxindex, FName i
         SpawnedItemBox->Count = count;
         SpawnedItemBox->Durability = durability;
         SpawnedItemBox->Durability_Max = durability_max;
-        SpawnedItemBox->ItemBoxId = itemboxindex;
+        SpawnedItemBox->ItemBoxId = original_itembox_id;
     }
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes    Item Details:"));
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes  ItemBoxIndex: %d"), itemboxindex);
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes  ItemName: %s"), *itemname.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes  ItemClass: %d"), itemclass);
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes  Count: %d"), count);
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes  Durability: %f"), durability);
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes  Durability_Max: %f"), durability_max);
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes  ItemPos: X=%.2f, Y=%.2f, Z=%.2f"), itempos.X, itempos.Y, itempos.Z);
 
-    UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes END !!!!!"));
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes    Item Details:"));
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes  ItemBoxId: %d"), original_itembox_id);
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes  ItemName: %s"), *itemname.ToString());
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes  ItemClass: %d"), itemclass);
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes  Count: %d"), count);
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes  Durability: %f"), durability);
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes  Durability_Max: %f"), durability_max);
+    UE_LOG(LogTemp, Log, TEXT("SpawnOtherCharGroundItemBoxes  ItemPos: X=%.2f, Y=%.2f, Z=%.2f"), itempos.X, itempos.Y, itempos.Z);
+
+    //UE_LOG(LogTemp, Warning, TEXT("SpawnOtherCharGroundItemBoxes END !!!!!"));
 }
 
 
@@ -838,7 +855,7 @@ void AOneGameModeBase::CarKeyRandomSetting()
 void AOneGameModeBase::SpawnInterItem(int32 InterActorindex, FName InterName, FVector carpos, FRotator carrotator, FName carkeyname)
 {
     int32 interAindex = InterActorindex - 1;
-    UE_LOG(LogTemp, Log, TEXT("SpawnInterItem -> InterActorindex: %d, SpawnInterName: %s"), interAindex, *InterName.ToString());
+    //UE_LOG(LogTemp, Log, TEXT("SpawnInterItem -> InterActorindex: %d, SpawnInterName: %s"), interAindex, *InterName.ToString());
     if (interAindex >= 8) {
         return;
     }
@@ -1160,7 +1177,7 @@ void AOneGameModeBase::UpdateZombie(uint32 ZombieID, uint32 ZombieType, FVector 
     ABaseZombie** ZombiePtr = ZombieMap.Find(ZombieID);
     if (ZombiePtr == nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Could not find Zombie ID: %d"), ZombieID);
+        //UE_LOG(LogTemp, Warning, TEXT("Could not find Zombie ID: %d"), ZombieID);
     }
 
     // 기존 좀비 존재함 => 업데이트 ===> (근데 사실상 이제는 사용 안함 -> PlayerCharacterController Tick 맨 아래에서 SetActorLocation을 직접 설정함)
@@ -1208,7 +1225,7 @@ void AOneGameModeBase::UpdateZombie(uint32 ZombieID, uint32 ZombieType, FVector 
                 NewZombie->floor = ABaseZombie::FLOOR::F2;
             }
 
-            UE_LOG(LogTemp, Warning, TEXT("Spawned new Zombie ID: %d"), ZombieID);
+           //UE_LOG(LogTemp, Warning, TEXT("Spawned new Zombie ID: %d"), ZombieID);
 
             if (ZombieType == 0) {
                 AZombieAIController* AIZombieController = World->SpawnActor<AZombieAIController>(ZombieAIClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
@@ -1232,11 +1249,11 @@ void AOneGameModeBase::UpdateZombie(uint32 ZombieID, uint32 ZombieType, FVector 
                     }
                     
 
-                    UE_LOG(LogTemp, Warning, TEXT("Spawned and possessed new Zombie ID: %d"), ZombieID);
+                    //UE_LOG(LogTemp, Warning, TEXT("Spawned and possessed new Normal Zombie ID: %d"), ZombieID);
                 }
                 else
                 {
-                    UE_LOG(LogTemp, Error, TEXT("Failed to spawn AI Controller for Zombie ID: %d"), ZombieID);
+                    UE_LOG(LogTemp, Error, TEXT("Failed to spawn AI Controller for Normal Zombie ID: %d"), ZombieID);
                 }
             }
             else if (ZombieType == 1) {
@@ -1260,11 +1277,11 @@ void AOneGameModeBase::UpdateZombie(uint32 ZombieID, uint32 ZombieType, FVector 
                     }
 
 
-                    UE_LOG(LogTemp, Warning, TEXT("Spawned and possessed new Zombie ID: %d"), ZombieID);
+                    //UE_LOG(LogTemp, Warning, TEXT("Spawned and possessed new Shouting Zombie ID: %d"), ZombieID);
                 }
                 else
                 {
-                    UE_LOG(LogTemp, Error, TEXT("Failed to spawn AI Controller for Zombie ID: %d"), ZombieID);
+                    UE_LOG(LogTemp, Error, TEXT("Failed to spawn AI Controller for Shouting Zombie ID: %d"), ZombieID);
                 }
             }
             else if (ZombieType == 2) {
@@ -1288,11 +1305,11 @@ void AOneGameModeBase::UpdateZombie(uint32 ZombieID, uint32 ZombieType, FVector 
                     }
 
 
-                    UE_LOG(LogTemp, Warning, TEXT("Spawned and possessed new Zombie ID: %d"), ZombieID);
+                    //UE_LOG(LogTemp, Warning, TEXT("Spawned and possessed new Running Zombie ID: %d"), ZombieID);
                 }
                 else
                 {
-                    UE_LOG(LogTemp, Error, TEXT("Failed to spawn AI Controller for Zombie ID: %d"), ZombieID);
+                    UE_LOG(LogTemp, Error, TEXT("Failed to spawn AI Controller for Running Zombie ID: %d"), ZombieID);
                 }
             }
 
@@ -1456,23 +1473,30 @@ void AOneGameModeBase::UpdateShoutingZombie(uint32 ZombieId, uint32 PlayerId)
     }
 }
 
+// 아이템 획득시 처리 함수
 void AOneGameModeBase::DestroyItem(uint32 Itemid, uint32 Playerid)
 {
     UWorld* World = GetWorld();
-    UE_LOG(LogTemp, Warning, TEXT("DestroyItem"));
+    UE_LOG(LogTemp, Log, TEXT("DestroyItem"));
     if (!World)
     {
-        UE_LOG(LogTemp, Warning, TEXT("DestroyItem: GetWorld() returned nullptr"));
+        UE_LOG(LogTemp, Error, TEXT("DestroyItem: GetWorld() returned nullptr"));
         return;
     }
 
-    // 캐릭터 검색 및 업데이트
+    // 캐릭터 검색 및 줍기 애니메이션 동기화
+    ABaseCharacter* BasePlayer = nullptr;
+
     for (TActorIterator<ABaseCharacter> It(World); It; ++It)
     {
-        if (ABaseCharacter* BasePlayer = *It)
+        BasePlayer = *It;
+        if (BasePlayer != nullptr)
         {
-            if (BasePlayer->GetPlayerId() == Playerid)
+            if (BasePlayer->GetPlayerId() == Playerid || (BasePlayer->GetPlayerId() == 99 && GameInstance->ClientSocketPtr->GetMyPlayerId() == Playerid))
             {
+                //UE_LOG(LogTemp, Display, TEXT("BasePlayer->GetPlayerId(): %d"), BasePlayer->GetPlayerId());
+                //UE_LOG(LogTemp, Display, TEXT("GameInstance->ClientSocketPtr->GetMyPlayerId(): %d"), GameInstance->ClientSocketPtr->GetMyPlayerId());
+
                 BasePlayer->SetPickUp();
                 UE_LOG(LogTemp, Display, TEXT("Pickup updated for PlayerId: %d"), Playerid);
                 break;
@@ -1480,16 +1504,23 @@ void AOneGameModeBase::DestroyItem(uint32 Itemid, uint32 Playerid)
         }
     }
 
-    // 아이템 상자 제거
     for (TActorIterator<AItemBoxActor> It(World); It; ++It)
     {
         if (AItemBoxActor* ItemBox = *It)
         {
-            if (ItemBox->ItemBoxId == (Itemid - 1))
+            if (ItemBox->ItemBoxId == Itemid)
             {
+                if (BasePlayer->GetPlayerId() == 99 && GameInstance->ClientSocketPtr->GetMyPlayerId() == Playerid) {    // 로컬 플레이어가 획득한 경우에는
+                    // 플레이어 아이템 실제 장착 => UI 업데이트 및 인벤토리에 추가
+                    if (BasePlayer != nullptr) {
+                        BasePlayer->PickUpItem(ItemBox);
+                    }
+                }
+
+                // 아이템 상자 제거
                 ItemBox->Destroy();
-                NullPtrItemBoxesIndex(ItemBox->ItemBoxId);
-                UE_LOG(LogTemp, Display, TEXT("Item destroyed: ItemId=%d"), Itemid);
+                NullPtrItemBoxesIndex(ItemBox->ItemBoxId - 1);  // 인덱스 번호를 넘겨줘야 해서 ItemBoxId - 1
+                UE_LOG(LogTemp, Warning, TEXT("Item destroyed: ItemId=%d"), Itemid);
                 break;
             }
         }

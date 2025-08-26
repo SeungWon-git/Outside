@@ -103,7 +103,6 @@ ABaseCharacter::ABaseCharacter()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CAMERA"));
 	PlayerSight = CreateDefaultSubobject<UPlayerSight>(TEXT("PLAYERSIGHT"));
@@ -550,6 +549,20 @@ void ABaseCharacter::BeginPlay()
 		}
 
 	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("BeginPlay called! Inventory size before: %d"), Inventory.Num());	// => InventoryUI에서 보니까 Init에서 초기화 해주고 있었음
+	//
+	//if (Inventory.Num() != 20) {
+	//	Inventory.SetNum(20);	// 미리 인벤토리 배열 크기 마련
+	//	UE_LOG(LogTemp, Warning, TEXT("Inventory.SetNum(20) complete!"));
+	//}
+	//
+	//UE_LOG(LogTemp, Warning, TEXT("Inventory size after: %d"), Inventory.Num());
+	//
+	//if (PickUpSlot.Num() != 1) {
+	//	PickUpSlot.SetNum(1);	// 마찬가지로
+	//	UE_LOG(LogTemp, Warning, TEXT("PickUpSlot.SetNum(1) complete!"));
+	//}
 
 
 
@@ -1053,7 +1066,7 @@ bool ABaseCharacter::SwapInven(int from, int to)
 // 플레이어가 아이템을 떨굴때 (퀵슬롯 초기화, 인벤토리 초기화)
 void ABaseCharacter::SpawnOnGround(int slotindex)
 {
-	UE_LOG(LogTemp, Log, TEXT("SpawnOnGround!!!!!!!!!!"));
+	UE_LOG(LogTemp, Log, TEXT("SpawnOnGround!"));
 	if (slotindex < 0 || slotindex > Inventory.Num()) {
 		UE_LOG(LogTemp, Error, TEXT("SpawnOnGround: slotindex(%d) is out of bounds!"), slotindex);
 		return;
@@ -1121,13 +1134,14 @@ void ABaseCharacter::SpawnOnGround(int slotindex)
 		Inventory[slotindex].Count = 0;
 		Inventory[slotindex].Durability = 0;
 		Inventory[slotindex].Durability_Max = 0;
+		Inventory[slotindex].ItemBoxOriginalId = -1;
 
 		GameUIUpdate();
 
-		UE_LOG(LogTemp, Warning, TEXT("ThrowOnGround.ExecuteIfBound!!!!!!!!!!!!!"));
-		UE_LOG(LogTemp, Warning, TEXT("ThrowWeaponOnGround - CurrentInvenSlot.Type: %f, CurrentInvenSlot.Durability: %f"), CurrentInvenSlot.Type, CurrentInvenSlot.Durability);
+		UE_LOG(LogTemp, Log, TEXT("ThrowOnGround.ExecuteIfBound!"));
+		UE_LOG(LogTemp, Log, TEXT("ThrowWeaponOnGround - CurrentInvenSlot.Type: %f, CurrentInvenSlot.Durability: %f"), CurrentInvenSlot.Type, CurrentInvenSlot.Durability);
 		
-		ThrowOnGround.ExecuteIfBound(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max);
+		ThrowOnGround.ExecuteIfBound(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max, CurrentInvenSlot.ItemBoxOriginalId);
 	}
 	else if (CurrentInvenSlot.Type == EItemType::ITEM_USEABLE) {	// 장착이 안된 아이템들 => 인벤토리만 초기화
 		Inventory[slotindex].Type = EItemType::ITEM_NONE;
@@ -1137,33 +1151,15 @@ void ABaseCharacter::SpawnOnGround(int slotindex)
 		Inventory[slotindex].Count = 0;
 		Inventory[slotindex].Durability = 0;
 		Inventory[slotindex].Durability_Max = 0;
+		Inventory[slotindex].ItemBoxOriginalId = -1;
 
 		GameUIUpdate();
 
-		UE_LOG(LogTemp, Warning, TEXT("ThrowOnGround.ExecuteIfBound!!!!!!!!!!!!!"));
-		UE_LOG(LogTemp, Warning, TEXT("ThrowWeaponOnGround - CurrentInvenSlot.Type: %f, CurrentInvenSlot.Durability: %f"), CurrentInvenSlot.Type, CurrentInvenSlot.Durability);
+		UE_LOG(LogTemp, Log, TEXT("ThrowOnGround.ExecuteIfBound!"));
+		UE_LOG(LogTemp, Log, TEXT("ThrowWeaponOnGround - CurrentInvenSlot.Type: %f, CurrentInvenSlot.Durability: %f"), CurrentInvenSlot.Type, CurrentInvenSlot.Durability);
 
-		ThrowOnGround.ExecuteIfBound(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max);
+		ThrowOnGround.ExecuteIfBound(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max, CurrentInvenSlot.ItemBoxOriginalId);
 	}
-
-
-	/*if (CurrentInvenSlot.Type == EItemType::ITEM_EQUIPMENT || CurrentInvenSlot.Type == EItemType::ITEM_USEABLE) {
-		if (CurrentInvenSlot.ItemClassType == EItemClass::BLEEDINGHEALINGITEM) {
-			DestroyBleedingHealingItemSlot();
-		}
-		else if (CurrentInvenSlot.ItemClassType == EItemClass::HEALINGITEM) {
-			DestroyHealingItemSlot();
-		}
-		else if (CurrentInvenSlot.ItemClassType == EItemClass::THROWINGWEAPON) {
-			DestroyThrowWeaponItemSlot();
-		}
-		else if (CurrentInvenSlot.ItemClassType == EItemClass::KEYITEM) {
-			DestroyKeyItemSlot();
-		}
-		else if (CurrentInvenSlot.ItemClassType == EItemClass::NORMALWEAPON) {
-			DestroyNormalWepaonItemSlot();
-		}
-	}*/
 }
 
 // 플레이어가 죽었을때 아이템 모두 떨구는 것 /*(퀵슬롯 초기화)*/
@@ -1175,82 +1171,22 @@ void ABaseCharacter::SpawnAllOnGround()
 		}
 		auto CurrentInvenSlot = this->Inventory[i];
 		if (CurrentInvenSlot.Type == EItemType::ITEM_EQUIPMENT) {
-			/*if (CurrentInvenSlot.ItemClassType == EItemClass::BLEEDINGHEALINGITEM) {
-				DestroyBleedingHealingItem();
-				QuickSlot[0].Type = EItemType::ITEM_QUICK_NONE;
-				QuickSlot[0].Name = "nullptr";
-				QuickSlot[0].ItemClassType = EItemClass::NONE;
-				QuickSlot[0].Texture = LoadObject<UTexture2D>(NULL, TEXT("/Engine/ArtTools/RenderToTexture/Textures/127grey.127grey"));
-				QuickSlot[0].Count = 0;
-				QuickSlot[0].SlotReference = -1;
-
-			}
-			else if (CurrentInvenSlot.ItemClassType == EItemClass::HEALINGITEM) {
-				DestroyHealingItem();
-				QuickSlot[1].Type = EItemType::ITEM_QUICK_NONE;
-				QuickSlot[1].Name = "nullptr";
-				QuickSlot[1].ItemClassType = EItemClass::NONE;
-				QuickSlot[1].Texture = LoadObject<UTexture2D>(NULL, TEXT("/Engine/ArtTools/RenderToTexture/Textures/127grey.127grey"));
-				QuickSlot[1].Count = 0;
-				QuickSlot[1].SlotReference = -1;
-
-			}
-			else if (CurrentInvenSlot.ItemClassType == EItemClass::THROWINGWEAPON) {
-				DestroyThrowWeapon();
-				QuickSlot[2].Type = EItemType::ITEM_QUICK_NONE;
-				QuickSlot[2].Name = "nullptr";
-				QuickSlot[2].ItemClassType = EItemClass::NONE;
-				QuickSlot[2].Texture = LoadObject<UTexture2D>(NULL, TEXT("/Engine/ArtTools/RenderToTexture/Textures/127grey.127grey"));
-				QuickSlot[2].Count = 0;
-				QuickSlot[2].SlotReference = -1;
-
-			}
-			else if (CurrentInvenSlot.ItemClassType == EItemClass::KEYITEM) {
-				DestroyKeyItem();
-
-				QuickSlot[3].Type = EItemType::ITEM_QUICK_NONE;
-				QuickSlot[3].Name = "nullptr";
-				QuickSlot[3].ItemClassType = EItemClass::NONE;
-				QuickSlot[3].Texture = LoadObject<UTexture2D>(NULL, TEXT("/Engine/ArtTools/RenderToTexture/Textures/127grey.127grey"));
-				QuickSlot[3].Count = 0;
-				QuickSlot[3].SlotReference = -1;
-
-			}
-			else if (CurrentInvenSlot.ItemClassType == EItemClass::NORMALWEAPON) {
-				DestroyNormalWeapon();
-
-				QuickSlot[4].Type = EItemType::ITEM_QUICK_NONE;
-				QuickSlot[4].Name = "nullptr";
-				QuickSlot[4].ItemClassType = EItemClass::NONE;
-				QuickSlot[4].Texture = LoadObject<UTexture2D>(NULL, TEXT("/Engine/ArtTools/RenderToTexture/Textures/127grey.127grey"));
-				QuickSlot[4].Count = 0;
-				QuickSlot[4].SlotReference = -1;
-				QuickSlot[4].Durability = 0;
-				QuickSlot[4].Durability_Max = 0;
-
-			}*/
-			// 사실상 안해줘도 됨;; -> 죽었는데 어차피
-
 			AOneGameModeBase* GameMode = Cast<AOneGameModeBase>(GetWorld()->GetAuthGameMode());
 
 			if (GameMode) {
-				GameMode->SpawnOnDeathGroundItem(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max, GetActorLocation());
+				GameMode->SpawnOnDeathGroundItem(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max, GetActorLocation(), CurrentInvenSlot.ItemBoxOriginalId);
 			}
 		}
-		else if (CurrentInvenSlot.Type == EItemType::ITEM_USEABLE) { // <- 이미 사용해버린 가방은 죽을때 안 떨구는 이유;; (인벤토리에는 없으니까)
+		else if (CurrentInvenSlot.Type == EItemType::ITEM_USEABLE) { // + 이미 사용해버린 가방은 죽을때 안 떨구는 이유;; (인벤토리에는 없으니까)
 
 			AOneGameModeBase* GameMode = Cast<AOneGameModeBase>(GetWorld()->GetAuthGameMode());
 
 			if (GameMode) {
-				GameMode->SpawnOnDeathGroundItem(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max, GetActorLocation());
+				GameMode->SpawnOnDeathGroundItem(CurrentInvenSlot.Name, CurrentInvenSlot.ItemClassType, CurrentInvenSlot.Texture, CurrentInvenSlot.Count, CurrentInvenSlot.Durability, CurrentInvenSlot.Durability_Max, GetActorLocation(), CurrentInvenSlot.ItemBoxOriginalId);
 			}
 		}
 	}
 }
-
-
-
-
 
 
 void ABaseCharacter::AttackMontageEnded(UAnimMontage* Montage, bool interrup)
@@ -1374,70 +1310,75 @@ void ABaseCharacter::GetItem()
 				return;
 			}
 
-			PickUp();
-			// 아이템박스에 있는 아이템에 대한 정보를 가져온다.
-			for (int i = 0; i < 20; ++i) {
-				if (Inventory[i].Type == EItemType::ITEM_NONE) {
-					Inventory[i].Type = EItemType::ITEM_USEABLE;
-					Inventory[i].Name = itembox->ItemName;
-					Inventory[i].ItemClassType = itembox->ItemClassType;
-					Inventory[i].Texture = itembox->Texture;
-					Inventory[i].Count = itembox->Count;
-					Inventory[i].Durability = itembox->Durability;
-					Inventory[i].Durability_Max = itembox->Durability_Max;
-					GameUIWidget->Update();
-					break;
-				}
-			}
-
-			PickUpSlot[0].Type = EItemType::ITEM_USEABLE;
-			PickUpSlot[0].Name = itembox->ItemName;
-			PickUpSlot[0].ItemClassType = itembox->ItemClassType;
-			PickUpSlot[0].Texture = itembox->Texture;
-			PickUpSlot[0].Count = itembox->Count;
-			PickUpSlot[0].Durability = itembox->Durability;
-			PickUpSlot[0].Durability_Max = itembox->Durability_Max;
-			PickUpUIWidget->Update();
-			OnPickUPUISlot();
-
-			ItemBoxId = itembox->GetItemBoxId();
+			// 아이템 획득 패킷 전송 (실제 획득은 서버에서 확인 후 획득함 - 데이터 레이스 방지)
+			GetItemBox_Id = itembox->GetItemBoxId();
 
 			if (itembox->ItemClassType == EItemClass::KEYITEM) {
 				if (itembox->ItemName.ToString().Contains("Car")) {
-					Send_GetKey(1, ItemBoxId);
+					Send_GetKey(1, GetItemBox_Id);
 				}
 
 				else if (itembox->ItemName.ToString().Contains("Roof")) {
 					if (GameTimerUIWidget) {
 						if (GameTimerUIWidget->RoofTopClose == false) {
-							Send_GetKey(2, ItemBoxId);
+							Send_GetKey(2, GetItemBox_Id);
 						}
 						else {
-							Send_Destroy(ItemBoxId);
+							Send_Destroy(GetItemBox_Id);
 						}
 					}
 				}
 			}
 
 			else {
-				Send_Destroy(ItemBoxId);
+				Send_Destroy(GetItemBox_Id);
 			}
-			
-
-			itembox->Destroy();
-			
-			AOneGameModeBase* GameMode = Cast<AOneGameModeBase>(GetWorld()->GetAuthGameMode());
-
-			if (GameMode)
-			{
-				GameMode->NullPtrItemBoxesIndex(ItemBoxId);
-			}
-			//PlayerSight->GetHitActor()->Destroy();
-
 		}
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("GetItem"));
+}
+
+// 실제 아이템 인벤토리에 넣고 인벤창 UI & 픽업 UI 업데이트하는 함수 
+void ABaseCharacter::PickUpItem(AItemBoxActor* itembox)
+{
+	// 아이템박스에 있는 아이템에 대한 정보를 가져온다.
+	for (int i = 0; i < 20; ++i) {
+		if (Inventory.IsValidIndex(i) == false) {    // 접근 가능한 인덱스인지 먼저 확인 => 생성자에서 미리 TArray 크기 잡아놔서 문제 생기진 않을 꺼임
+			UE_LOG(LogTemp, Error, TEXT("PickUpItem: Inventory.InvalidIndex=%d"), i);
+			continue;
+		}
+
+		if (Inventory[i].Type == EItemType::ITEM_NONE) {
+			Inventory[i].Type = EItemType::ITEM_USEABLE;
+			Inventory[i].Name = itembox->ItemName;
+			Inventory[i].ItemClassType = itembox->ItemClassType;
+			Inventory[i].Texture = itembox->Texture;
+			Inventory[i].Count = itembox->Count;
+			Inventory[i].Durability = itembox->Durability;
+			Inventory[i].Durability_Max = itembox->Durability_Max;
+			Inventory[i].ItemBoxOriginalId = itembox->ItemBoxId;
+			UE_LOG(LogTemp, Warning, TEXT("PickUpItem: ItemId=%d"), itembox->ItemBoxId);
+
+			GameUIWidget->Update();
+			break;
+		}
+	}
+
+	if (PickUpSlot.IsValidIndex(0) == false) {    // 접근 가능한 인덱스인지 먼저 확인 => 생성자에서 미리 TArray 크기 잡아놔서 문제 생기진 않을 꺼임
+		UE_LOG(LogTemp, Error, TEXT("PickUpItem: PickUpSlot.InvalidIndex=0"));
+	}
+	else {
+		PickUpSlot[0].Type = EItemType::ITEM_USEABLE;
+		PickUpSlot[0].Name = itembox->ItemName;
+		PickUpSlot[0].ItemClassType = itembox->ItemClassType;
+		PickUpSlot[0].Texture = itembox->Texture;
+		PickUpSlot[0].Count = itembox->Count;
+		PickUpSlot[0].Durability = itembox->Durability;
+		PickUpSlot[0].Durability_Max = itembox->Durability_Max;
+		PickUpUIWidget->Update();
+		OnPickUPUISlot();
+	}
 }
 
 void ABaseCharacter::ShowActionText(FText Text, const FSlateColor& Color, float DisplayTime)
@@ -1534,18 +1475,18 @@ void ABaseCharacter::ProStartGameOverUI()
 	}
 }
 
-void ABaseCharacter::OtherGetItem()
-{
-	if (PlayerSight->GetIsHit()) {
-
-		auto itembox = Cast<AItemBoxActor>(PlayerSight->GetHitActor());
-		PickUp();
-		ItemBoxId = itembox->GetItemBoxId();
-		PlayerSight->GetHitActor()->Destroy();
-	}
-
-	UE_LOG(LogTemp, Display, TEXT("OtherGetItem"));
-}
+//void ABaseCharacter::OtherGetItem()
+//{
+//	if (PlayerSight->GetIsHit()) {
+//
+//		auto itembox = Cast<AItemBoxActor>(PlayerSight->GetHitActor());
+//		PickUp();
+//		GetItemBox_Id = itembox->GetItemBoxId();
+//		PlayerSight->GetHitActor()->Destroy();
+//	}
+//
+//	UE_LOG(LogTemp, Display, TEXT("OtherGetItem"));
+//}
 
 void ABaseCharacter::LightOnOff()
 {
@@ -2171,6 +2112,7 @@ void ABaseCharacter::UpdateNormalWeaponSlot()
 	}	
 }
 
+// 아이템 집어들기 애니메이션 재생
 void ABaseCharacter::PickUp()
 {
 	if (m_bIsPickUping) {
@@ -3578,7 +3520,7 @@ void ABaseCharacter::Send_Destroy(uint32 itemboxid)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Sending Destroy Packet: ItemBox ID = %d"), itemboxid);
 	Protocol::destroy_item Packet;
-	Packet.set_itemid(itemboxid+1);
+	Packet.set_itemid(itemboxid);
 	Packet.set_playerid(GameInstance->ClientSocketPtr->GetMyPlayerId());
 	Packet.set_packet_type(17);
 
@@ -3596,7 +3538,7 @@ void ABaseCharacter::Send_GetKey(uint32 itemid, uint32 itemboxid)
 	UE_LOG(LogTemp, Warning, TEXT("Sending GetKey Packet: ItemBox ID = %d"), itemboxid);
 	Protocol::get_key keyPacket;
 	keyPacket.set_itemid(itemid);
-	keyPacket.set_itemboxid(itemboxid+1);
+	keyPacket.set_itemboxid(itemboxid);
 	keyPacket.set_playerid(GameInstance->ClientSocketPtr->GetMyPlayerId());
 	keyPacket.set_packet_type(18);
 

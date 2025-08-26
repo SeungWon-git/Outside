@@ -39,6 +39,8 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
 
         if (b_login) {
             g_players[id]->username = CS_Packet.id();
+            
+            cout << "ID: " << CS_Packet.id() << ", PW: " << CS_Packet.password() << " - Logined!" << endl;
         }
 
         string serializedData;
@@ -76,6 +78,13 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
         CS_Packet.ParseFromArray(buffer, bufferSize);
 
         g_players[CS_Packet.playerid()]->ready = CS_Packet.ready();
+
+        //if (CS_Packet.ready() == true) {
+        //    cout << "Ready!" << endl;
+        //}
+        //else {
+        //    cout << "Ready Cancel!" << endl;
+        //}
 
         std::string serializedData;
         CS_Packet.SerializeToString(&serializedData);
@@ -121,7 +130,7 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
 
         Protocol::Select_Character Select_Packet;
         Select_Packet.ParseFromArray(buffer, bufferSize);
-        cout << Select_Packet.character_type() << endl;
+        //cout << Select_Packet.character_type() << "(1 - Girl, 2 - Idol, 3 - FireFighter, 4 - CompanyGuy)" << endl;
 
         Select_Packet.set_playerid(g_players[Select_Packet.playerid()]->player_num);
         Select_Packet.set_character_type(Select_Packet.character_type());
@@ -136,7 +145,7 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
         for (const auto& player : g_players) {
             if (player.second->room_num == room_id) {
                 IOCP_SendPacket(player.first, serializedData.data(), serializedData.size());
-                printf("傈价等 规锅龋: %d", player.second->room_num);
+                //printf("傈价等 规锅龋: %d\n", player.second->room_num);
             }
         }
         return true;
@@ -157,6 +166,8 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
         auto it = rooms.find(room_id);
         if (it != rooms.end()) {
             room = it->second;
+
+            cout << "Joined Room " << CS_Packet.roomid() << endl;
         }
 
         if (room->JoinRoom()) {
@@ -229,6 +240,8 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
         auto it = rooms.find(room_id);
         Room* room = it->second;
 
+        cout << "Leaved Room " << CS_Packet.roomid() << endl;
+
         room->LeaveRoom();
 
         Protocol::SC_LeavePlayer SC_Packet;
@@ -283,6 +296,13 @@ bool IOCP_CORE::IOCP_ProcessPacket(int id, Packet* buffer, int bufferSize) {
 
         std::string serializedData;
         CS_Packet.SerializeToString(&serializedData);
+
+        //if (CS_Packet.ready() == true) {
+        //    cout << "Character Select Ready!" << endl;
+        //}
+        //else {
+        //    cout << "Character Select Ready Cancel!" << endl;
+        //}
 
         int ready_cnt = 0;
         int room_player_cnt = 0;

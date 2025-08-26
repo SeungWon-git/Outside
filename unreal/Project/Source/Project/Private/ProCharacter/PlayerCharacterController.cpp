@@ -285,7 +285,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 
 				UE_LOG(LogNet, Display, TEXT("queue try pop Q_dropitem"));
 
-				MyGameMode->SpawnOtherCharGroundItemBoxes((recvDropItem.itemid - 1), Fitemname, recvDropItem.itemclass, LoadedTexture, recvDropItem.count, recvDropItem.itempos, recvDropItem.durability, recvDropItem.durability_max);
+				MyGameMode->SpawnOtherCharGroundItemBoxes(recvDropItem.itemid, Fitemname, recvDropItem.itemclass, LoadedTexture, recvDropItem.count, recvDropItem.itempos, recvDropItem.durability, recvDropItem.durability_max);
 			}
 		}
 
@@ -364,7 +364,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 				std::string best_kill_player;*/
 
 
-				UE_LOG(LogNet, Display, TEXT("recvGameClearrecvGameClearrecvGameClearrecvGameClearrecvGameClear"));
+				UE_LOG(LogNet, Warning, TEXT("recvGameClearrecvGameClearrecvGameClearrecvGameClearrecvGameClear"));
 
 				//처리 recvEscapeRoot.playerid, recvEscapeRoot.root
 				APawn* ControlledPawn = GetPawn();
@@ -384,9 +384,19 @@ void APlayerCharacterController::Tick(float DeltaTime)
 							, recvGameClear.my_kill_count
 							, recvGameClear.best_kill_count
 							, bestkillplayerFStr);
+
+
+						// 서버에서 게임 클리어 패킷 그만 보내도록 다시 답장
+						Protocol::send_complete completepacket;
+						completepacket.set_packet_type(21);
+						completepacket.set_complete_type(4);
+
+						std::string serializedData;
+						completepacket.SerializeToString(&serializedData);
+
+						bool bIsSent = GameInstance->ClientSocketPtr->Send(serializedData.size(), (void*)serializedData.data());
+				
 					}
-
-
 				}
 			}
 		}
@@ -398,7 +408,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 			if (AOneGameModeBase* MyGameMode = Cast<AOneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld())))
 			{
 				MyGameMode->UpdateZombie(recvZombieData.ZombieId, recvZombieData.ZombieType, recvZombieData.Location, recvZombieData.Rotation);
-				UE_LOG(LogNet, Display, TEXT("Update call Zombie: Playerid=%d"), GameInstance->ClientSocketPtr->MyPlayerId);	// 좀비가 움직이거나 스폰되면 보내는데 이제는 움직임은 따로 통신하지 않아서 스폰될때 불림
+				//UE_LOG(LogNet, Display, TEXT("Spawn Zombie: Playerid=%d, Zombieid=%d"), GameInstance->ClientSocketPtr->MyPlayerId, recvZombieData.ZombieId);	// 좀비가 스폰될때 불림
 			}
 		}
 
@@ -462,6 +472,11 @@ void APlayerCharacterController::Tick(float DeltaTime)
 
 		if (ZombieMap.IsEmpty() == true) {
 			break;
+		}
+
+		if (&tmp_path == nullptr) {
+			UE_LOG(LogTemp, Error, TEXT("(Q_path) tmp_path is empty!"));	// 레어한데 갑자기 계단에 있을때 tmp_path에 잘못된 메모리 참조 오류가 발생해서 추가;;
+			continue;
 		}
 
 		ABaseZombie** zombie = ZombieMap.Find(tmp_path.ZombieId);
@@ -638,6 +653,7 @@ void APlayerCharacterController::Tick(float DeltaTime)
 
 		bool isAnimPlaying_besideWalking = false;	// 걷기 애니메이션 말고 다른 애니메이션 (공격, 피격, 샤우팅) 재생 중인지
 
+		// 가끔씩 이유는 모르겠는데 다른 층에서 이동하면 좀비가 바닥으로 떨어져서 여기서 크래시 발생할 때 꽤 있음;;; (특히 로컬에서 2개 동시에 켰을 시에)
 		if ((*zombie)->CachedAnimInstance->Montage_IsPlaying((*zombie)->CachedAnimInstance->AttackMontage) == true
 			|| (*zombie)->CachedAnimInstance->Montage_IsPlaying((*zombie)->CachedAnimInstance->BeAttackedMontage) == true
 			|| (*zombie)->CachedAnimInstance->Montage_IsPlaying((*zombie)->CachedAnimInstance->ShoutingMontage) == true) {
@@ -687,7 +703,6 @@ void APlayerCharacterController::CheckAndSendMovement(float DeltaTime)
 	FRotator CurrentRotation = MyPawn->GetActorRotation();
 
 	ABaseCharacter* MyBaseCharacter = Cast<ABaseCharacter>(MyPawn);
-	uint32 ItemBoxId = MyBaseCharacter->ItemBoxId;
 	float hp = MyBaseCharacter->GetHP();
 
 	bool bShouldSend = false;

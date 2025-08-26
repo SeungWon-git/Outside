@@ -61,7 +61,7 @@ public:
             zom.detectHasFootSound_randomChance = false;    // 다시 초기화
         }
 
-        if (d_result == true) {
+        if (d_result == true) { // 새로운 발소리가 청각범위내에 있었고 랜덤 확률도 뚫고 들었다면
             zom.HeardFootSound = true;
             zom.SetTargetLocation(Zombie::TARGET::FOOTSOUND);   // 가장 가까운 플레이어의 발소리를 목표지점으로 (TargetLocation 설정)
         }
@@ -71,7 +71,11 @@ public:
             if (d_result == false)
                 cout << "좀비 플레이어 발소리 정보를 이미 가지고 있는가?: true" << endl;
 #endif
-            zom.SetTargetLocation(Zombie::TARGET::FOOTSOUND);   // 가장 가까운 플레이어의 발소리를 목표지점으로 (TargetLocation 설정)
+            // zom.SetTargetLocation(Zombie::TARGET::FOOTSOUND);   // 가장 가까운 플레이어의 발소리를 목표지점으로 (TargetLocation 설정) 
+            // 생각 해보니 굳이 안해줘도 됨! -> 이미 HeardFootSound = true라면 TargetLocation, targetType 이 이전에 지정되어 있는 상태이고 
+            // FootSound_Update_Check 결과가 true였다면 위에 d_result == true에서 SetTargetLocation 작업 해주고 있고, 
+            // 결과가 false였다면 새로운 발소리가 포착 안된거고 그럼 SetTargetLocation에서 SearchClosestPlayer도 작동 안할 꺼니까 ===> 그냥 어느 상황이든 할 필요가 없음
+            // ===> LookAround 때문에 다시 설정해줘야 했었던게 맞음;;;(안 그럼 무한히 가만히 서있음;;) => 근데, 이제 그냥 LookAround Task로 만들어서 Detect에 연결해서 사용할 꺼라서 필요 X
 
             d_result = true;
         }

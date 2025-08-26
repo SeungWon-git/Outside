@@ -3,9 +3,10 @@
 random_device rd;
 uniform_int_distribution Cuid(0, 6);
 
-ItemController::ItemController(IOCP_CORE& mainServer)
+ItemController::ItemController(IOCP_CORE* mainServer, int roomid)
 {
-	iocpServer = &mainServer;
+	iocpServer = mainServer;
+    item_roomid = roomid;
 
     ItemRandomLocationSetting();
     CarActorRandomLocationSetting();
@@ -83,7 +84,6 @@ ItemController::ItemController(IOCP_CORE& mainServer)
     SpawnItemBoxes(59, "CarKey3", EItemClass::KEYITEM, "/Game/InvenPng/InvenCarKey2.InvenCarKey2", 1, FLOOR::FLOOR_F2);
     SpawnItemBoxes(60, "CarKey4", EItemClass::KEYITEM, "/Game/InvenPng/InvenCarKey2.InvenCarKey2", 1, FLOOR::FLOOR_F2);
 
-    //cout << endl;
 
     SpawnInterItem(1, "CarActor");
     SpawnInterItem(2, "CarActor");
@@ -93,10 +93,6 @@ ItemController::ItemController(IOCP_CORE& mainServer)
     SpawnInterItem(6, "CarActor");
     SpawnInterItem(7, "CarActor");
     SpawnInterItem(8, "RoofTopDoorActor");
-
-    //cout << endl;
-
-    
 }
 
 ItemController::~ItemController()
@@ -107,32 +103,32 @@ void ItemController::ItemRandomLocationSetting()
 {
     // 0~19은 B1, 20~39는 F1, 40~59는 F2
     // B1
-    ItemRandomLocationStruct[0].sLocation = FVector(2330.f, 3200.f, 975.0626f);
-    ItemRandomLocationStruct[1].sLocation = FVector(1880.f, 3870.f, 975.0626f);
-    ItemRandomLocationStruct[2].sLocation = FVector(400.f, 3650.f, 975.0626f);
+    ItemRandomLocationStruct[0].sLocation = FVector(2330.f, 3200.f, 980.0626f);
+    ItemRandomLocationStruct[1].sLocation = FVector(1880.f, 3870.f, 980.0626f);
+    ItemRandomLocationStruct[2].sLocation = FVector(400.f, 3650.f, 980.0626f);
 
-    ItemRandomLocationStruct[3].sLocation = FVector(1000.f, 2800.f, 975.0626f);
-    ItemRandomLocationStruct[4].sLocation = FVector(2200.f, 3300.f, 975.0626f);
-    ItemRandomLocationStruct[5].sLocation = FVector(1770.f, 2170.f, 975.0626f);
+    ItemRandomLocationStruct[3].sLocation = FVector(1000.f, 2800.f, 980.0626f);
+    ItemRandomLocationStruct[4].sLocation = FVector(2200.f, 3300.f, 980.0626f);
+    ItemRandomLocationStruct[5].sLocation = FVector(1770.f, 2170.f, 980.0626f);
 
-    ItemRandomLocationStruct[6].sLocation = FVector(440.f, 2310.f, 975.0626f);
-    ItemRandomLocationStruct[7].sLocation = FVector(2300.f, 1800.f, 975.0626f);
-    ItemRandomLocationStruct[8].sLocation = FVector(820.f, 1650.f, 975.0626f);
+    ItemRandomLocationStruct[6].sLocation = FVector(440.f, 2310.f, 980.0626f);
+    ItemRandomLocationStruct[7].sLocation = FVector(2300.f, 1800.f, 980.0626f);
+    ItemRandomLocationStruct[8].sLocation = FVector(820.f, 1650.f, 980.0626f);
 
-    ItemRandomLocationStruct[9].sLocation = FVector(120.f, 1200.f, 975.0626f);
-    ItemRandomLocationStruct[10].sLocation = FVector(270.f, 2000.f, 975.0626f);
-    ItemRandomLocationStruct[11].sLocation = FVector(1870.f, 800.f, 975.0626f);
+    ItemRandomLocationStruct[9].sLocation = FVector(120.f, 1200.f, 980.0626f);
+    ItemRandomLocationStruct[10].sLocation = FVector(270.f, 2000.f, 980.0626f);
+    ItemRandomLocationStruct[11].sLocation = FVector(1870.f, 800.f, 980.0626f);
 
-    ItemRandomLocationStruct[12].sLocation = FVector(1200.f, 100.f, 975.0626f);
-    ItemRandomLocationStruct[13].sLocation = FVector(30.f, 540.f, 975.0626f);
-    ItemRandomLocationStruct[14].sLocation = FVector(500.f, -238.f, 975.0626f);
+    ItemRandomLocationStruct[12].sLocation = FVector(1200.f, 100.f, 980.0626f);
+    ItemRandomLocationStruct[13].sLocation = FVector(30.f, 540.f, 980.0626f);
+    ItemRandomLocationStruct[14].sLocation = FVector(500.f, -238.f, 980.0626f);
 
-    ItemRandomLocationStruct[15].sLocation = FVector(1200.f, -976.f, 975.0626f);
-    ItemRandomLocationStruct[16].sLocation = FVector(480.f, 800.f, 975.0626f);
-    ItemRandomLocationStruct[17].sLocation = FVector(2330.f, 400.f, 975.0626f);
+    ItemRandomLocationStruct[15].sLocation = FVector(1200.f, -976.f, 980.0626f);
+    ItemRandomLocationStruct[16].sLocation = FVector(480.f, 800.f, 980.0626f);
+    ItemRandomLocationStruct[17].sLocation = FVector(2330.f, 400.f, 980.0626f);
 
-    ItemRandomLocationStruct[18].sLocation = FVector(730.f, 2130.f, 975.0626f);
-    ItemRandomLocationStruct[19].sLocation = FVector(30.f, 3540.f, 975.0626f);
+    ItemRandomLocationStruct[18].sLocation = FVector(730.f, 2130.f, 980.0626f);
+    ItemRandomLocationStruct[19].sLocation = FVector(30.f, 3540.f, 980.0626f);
 
 
     // F1
@@ -195,7 +191,6 @@ void ItemController::ItemRandomLocationSetting()
     for (int i = 0; i < 60; ++i) {
         ItemRandomLocationStruct[i].bIsSeatLocation = false;
     }
-
 }
 
 FVector ItemController::RandomItemLocation(FLOOR itemfloor)
