@@ -40,14 +40,14 @@
 
 ### 🔸 Custom Behavior Tree 구현
 - 사실적인 좀비 AI를 만들고자 AI 구현 모델을 ***Behavior Tree***로 정하였고 이를 직접 커스텀 서버 코드에서 돌려야 하므로 Selector/Sequence/Decorator 등을 모두 직접 구현하여야 했다!
-![BT_Diagram](https://github.com/2023gamedev/project/blob/SW/JungSeungWon/%EA%B8%B0%ED%83%80/CustomZombie_BT(UPDATED).png)
+![BT_Diagram](https://github.com/SeungWon-git/Outside/blob/main/JungSeungWon/%EA%B8%B0%ED%83%80/CustomZombie_BT(UPDATED).png)
 - **함수 오버라이딩**을 사용하여 Selector의 Decorator를 구현! → 알아보기도 쉽고 유지관리 및 Selector에 더 다양한 새로운 Task를 붙이기에도 용이함!
 - 한 예로 Detect Selector의 자식 노드 중 하나인 CanSeePlayer의 Decorater는 다음과 같이 'bool Detect(Zombie& zom) override' 로 구현되어 있다.
 - 실제 구현 코드: 
- [BT의 기반 Task 클래스](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Task.h), 
- [Selector](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Selector.h), 
- [트리 할당](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/ZombieBT.cpp#L61), 
- [CanSeePlayer의 Detect Decorator 구현](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/CanSeePlayer.h#L11)
+ [BT의 기반 Task 클래스](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/Task.h), 
+ [Selector](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/Selector.h), 
+ [트리 할당](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/ZombieBT.cpp#L61), 
+ [CanSeePlayer의 Detect Decorator 구현](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/CanSeePlayer.h#L11)
 - 이를 통해 **좀비 BT를 서버에서 전적으로 담당**하게 되어 클라이언트에서는 서버에서 전송해주는 Task들(애니메이션 전환, 렌더링, 물리 처리)만 수행하여 모든 클라이언트들에서 좀비 AI 동기화를 수행
 
 ### 🔸 좀비 Path 동기화 이슈
@@ -63,9 +63,9 @@
   + 원인: for루프를 돌며 너무 반복적이고 연속적으로 패킷을 Send하여 패킷로스가 발생
   + 해결: 층별 묶음 전송 방식으로 개선
 - 코드: 
-[서버 좀비 path 송신](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/iocpServerClass.cpp#L816), 
-[서버 좀비 움직임 계산](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Zombie.cpp#L636), 
-[클라 좀비 움직임 계산](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L36)
+[서버 좀비 path 송신](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/iocpServerClass.cpp#L816), 
+[서버 좀비 움직임 계산](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/Zombie.cpp#L636), 
+[클라 좀비 움직임 계산](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L36)
 
 ### 🔸 서버-클라 좀비 플레이어 시야에 포착
 - 먼저, 플레이어 시야 포착(CanSeePlayer Task)은 Ray Casting 방식을 이용하여 실제로 플레이어를 포착 했을때 좀비가 플레이어를 쫒아가도록 설계
@@ -73,8 +73,8 @@
   - 해결: 따라서 **Ray Casting은 클라에서 직접 실행**하되, 시야에 포착하였다고 **서버로 알려주는 방식** 채용
     + 실제 포착했는지 여부는 또 **서버에서 거리에 따라 랜덤 확률에 따라 판단하여 클라에 전달**
 - 코드:
-[클라 Ray Casting 검사](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L359), 
-[서버 거리에 따른 플레이어 랜덤 포착](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/Zombie.cpp#L1511)
+[클라 Ray Casting 검사](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L359), 
+[서버 거리에 따른 플레이어 랜덤 포착](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/Zombie.cpp#L1511)
 
 ### 🔸 스켈레탈 메시 절단 시스템
 - 아이디어:
@@ -87,8 +87,8 @@
   + 이때 절단면을 구분하기 위해 모든 버텍스 정보들을 순회하기에는 시간이 오래 걸리니 **밀도 기반 클러스터링(DBSCAN) 알고리즘을 이용**
     + 알고리즘 사용 후 처리 속도: **0.5초-5초 → 0.01초-0.02초**
  - 코드:
-[스켈레탈 메시 → 프로시져 메시 전환하는 함수](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1283), 
-[N개 절단 함수](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1405)
+[스켈레탈 메시 → 프로시져 메시 전환하는 함수](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1283), 
+[N개 절단 함수](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/BaseZombie.cpp#L1405)
 
 ### 🔸 최적화 작업
 - 클라이언트:
@@ -96,17 +96,18 @@
     - 성능: **(최저 권장 사양에서) 20-40 fps → 60-80 fps**
 - 서버:
   * BT 최적화: 플레이어가 있는 층에 좀비만 BT 실행
-  * A* 알고리즘: 정점 기반 경로 → 선분 기반으로 변경 
+  * A* 알고리즘: 정점 기반 경로 → 선분 기반으로 변경
     - 처리 속도: **0.5초 → 0.001초(=1ms)**
+  * 송신큐 **lock-free**로 접근 (***CAS(Compare And Swap) 연산*** 이용) → 낮은 지연, 높은 처리량
  - 코드:
-[A* 알고리즘](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/ZombiePathfinder.cpp#L200)
+[A* 알고리즘](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/ZombiePathfinder.cpp#L200), [SendQueue Lock-Free](https://github.com/SeungWon-git/Outside/blob/d0069c056e4d1d7483763fe51fab081240fd8236/Server/Game%20Server/Server/iocpServerClass.cpp#L414)
 
 ### 🔸 좀비 애니메이션 문제
 - 문제: 좀비 공격/피격 후 다시 다음 애니메이션으로 전환될 시에 걷기 애니메이션이 항상 강제적으로 재생이 되어 움찔거리게 되는 문제 발생
 - 원인: 클라에서 서버로부터 공격/피격이 끝나고 다음 Task를 받기 전 애니메이션 시퀀스가 끝남에 따라 자동적으로 걷기 State로 돌아가서 발생한 문제임을 파악
 - 해결: 공격/피격이 끝나고 약간의 딜레이(idle State 실행)를 주어 애니메이션 전환이 매끄럽도록 수정 
 - 코드:
-[좀비 애니메이션 전환 딜레이](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L53)
+[좀비 애니메이션 전환 딜레이](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L53)
 
 ### 🔸 플레이어 이동 지연
 - 문제: 저사양 환경에서 위치 동기화 딜레이 발생
@@ -116,25 +117,25 @@
   + 플레이어 위치 이동 패킷 전송도 Tick에서 움직임이 있을때마다 보내지 않고 60분에 1초 단위마다 보내도록 한계 설정
   + 패킷으로 받은 플레이어 위치를 원격 클라에서 직접 적용할 때도 보간을 이용하여 부드럽게 움직이는 것 처럼 보이도록 함
 - 코드:
-[플레이어 위치 동기화](https://github.com/2023gamedev/project/blob/SW/unreal/Project/Source/Project/Private/ProCharacter/PlayerCharacterController.cpp#L128)
+[플레이어 위치 동기화](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProCharacter/PlayerCharacterController.cpp#L128)
 
 ### 🔸 게임 시간 측정 오류
 - 문제: 게임 시간 10분보다 훨씬 더 빨리 게임이 끝났다고 계산하는 문제 발생
 - 원인: 시간을 측정할 때 +deltaTime을 해주는 부분에서 **부동 소수점 오류**가 계속 누적되어 원래 시간보다 더 빨리 시간을 측정하고 있었음
 - 해결: 부동 소수점 오류를 피하고자 deltaTime가 **5ms** 이상 일 경우에만 게임 시간에 누적시킴!
 - 코드:
-[게임 시간 측정](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/iocpServerClass.cpp#L553)
+[게임 시간 측정](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/iocpServerClass.cpp#L553)
 ---
 
 ## 🐞 버그 관리 전략
 - `버그.txt` 문서 작성 → **1000줄 이상 추적** + 영상까지 기록
-  + [버그 리스트](https://github.com/2023gamedev/project/blob/SW/JungSeungWon/%EA%B8%B0%ED%83%80/%EB%B2%84%EA%B7%B8.txt)
+  + [버그 리스트](https://github.com/SeungWon-git/Outside/blob/main/JungSeungWon/%EA%B8%B0%ED%83%80/%EB%B2%84%EA%B7%B8.txt)
   + 영상 기록
-  + <img src="https://github.com/2023gamedev/project/blob/SW/JungSeungWon/%EA%B8%B0%ED%83%80/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202025-06-21%20181037.png" width="300">
+  + <img src="https://github.com/SeungWon-git/Outside/blob/main/JungSeungWon/%EA%B8%B0%ED%83%80/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202025-06-21%20181037.png" width="300">
 - GitHub + 매주 3회 이상 대면회의 + 주마다 작업일지 병행
-  + [주차별 작업일지](https://github.com/2023gamedev/project/tree/SW/JungSeungWon/%EC%9E%91%EC%97%85%EC%9D%BC%EC%A7%80)
+  + [주차별 작업일지](https://github.com/SeungWon-git/Outside/tree/SW/JungSeungWon/%EC%9E%91%EC%97%85%EC%9D%BC%EC%A7%80)
 - `#ifdef DEBUG` 와 같이 세분화된 전처리기 조건부 로그로 서버 BT 문제 위치 빠르게 추적
-  + [전처리기 디렉티브](https://github.com/2023gamedev/project/blob/SW/Server/Game%20Server/Server/iocpServerClass.h#L43)
+  + [전처리기 디렉티브](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/iocpServerClass.h#L43)
 ---
 
 ## 🌱 이번 프로젝트를 통해 배운점
@@ -145,5 +146,6 @@
 ---
 
 ## 📎 기타
-- GitHub 저장소: 👉 [GitHub 저장소 바로가기](https://github.com/2023gamedev/project/tree/SW)
-- Contributors Graphs: [🔗 View Contributors Graph](https://github.com/2023gamedev/project/graphs/contributors)
+- GitHub 저장소: 👉 [GitHub 저장소 바로가기](https://github.com/SeungWon-git/Outside)
+- 최종 보고서:  📃 [최종 보고서(한글파일)](https://github.com/SeungWon-git/Outside/blob/main/%EB%B3%B4%EA%B3%A0%EC%84%9C/2025_%EA%B2%8C%EC%9E%84%EA%B3%B5%ED%95%99%EA%B3%BC_%EC%B5%9C%EC%A2%85_%EB%B3%B4%EA%B3%A0%EC%84%9C_%EC%96%91%EC%8B%9D%20-%20%EC%95%84%EC%9B%83%EC%82%AC%EC%9D%B4%EB%93%9C_%EC%A0%95%EC%8A%B9%EC%9B%90%EC%A1%B0%EC%83%81%EC%A4%80%EC%9D%B4%ED%95%9C%EC%A3%BC.hwp)
+- Contributors Graphs: [🔗 View Contributors Graph](https://github.com/SeungWon-git/Outside/graphs/contributors)
