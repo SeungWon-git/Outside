@@ -5,6 +5,8 @@
 ## * 게임 플레이 영상: [Outside 시연영상](https://www.youtube.com/watch?v=11JJCJvbKck)
 ![YT_IMG](http://img.youtube.com/vi/11JJCJvbKck/0.jpg)
 
+### [상세 설명 링크🔗](https://github.com/SeungWon-git/Outside/blob/main/JungSeungWon/README.md)
+
 * * *
 
 ### * 영상에는 포함되지 않았지만 구현된 기능
