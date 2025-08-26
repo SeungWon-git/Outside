@@ -125,6 +125,7 @@
 - 해결: 부동 소수점 오류를 피하고자 deltaTime가 **5ms** 이상 일 경우에만 게임 시간에 누적시킴!
 - 코드:
 [게임 시간 측정](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/iocpServerClass.cpp#L553)
+
 ---
 
 ## 🐞 버그 관리 전략
@@ -136,6 +137,7 @@
   + [주차별 작업일지](https://github.com/SeungWon-git/Outside/tree/SW/JungSeungWon/%EC%9E%91%EC%97%85%EC%9D%BC%EC%A7%80)
 - `#ifdef DEBUG` 와 같이 세분화된 전처리기 조건부 로그로 서버 BT 문제 위치 빠르게 추적
   + [전처리기 디렉티브](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/iocpServerClass.h#L43)
+
 ---
 
 ## 🌱 이번 프로젝트를 통해 배운점
@@ -143,6 +145,7 @@
    * 이 과정에서 **클라-서버 간 동기화에서 유의해야 하는 점** 등에대해 몸소 경험하였으며, **효율적이고 안정적인 동기화 방식**이 어떤 것인지에 대해 실제로 고민하고 적용해 볼 수 있었다.
    * **AI를 직접 설계**하며 행동 로직 구성의 난이도와 그에 따른 문제를 해결하기 위해 어떤 전략과 기법이 필요한지 깊이 고민하고 시도해보는 계기가 되었습니다.
    * 비록 프로덕션 수준에는 다소 못 미쳤지만, 그에 근접하기 위해 **다양한 언리얼 기능들을 활용**해 보았고, **게임 개발의 전반적인 흐름**과 **협업 시 중요하게 고려해야 할 점들**에 대해 많은 것을 배우게 되었다!
+
 ---
 
 ## 📎 기타
