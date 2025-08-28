@@ -67,7 +67,8 @@
 [서버 좀비 path 송신](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/iocpServerClass.cpp#L816), 
 [서버 좀비 움직임 계산](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/Zombie.cpp#L636), 
 [클라 좀비 움직임 계산](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L36),
-[서버 송수신 스레드](https://github.com/SeungWon-git/Outside/blob/db625b126cf9d8e4034f34012b7e65709d158a92/Server/Game%20Server/Server/iocpServerClass.cpp#L166)
+[서버 송수신 스레드](https://github.com/SeungWon-git/Outside/blob/db625b126cf9d8e4034f34012b7e65709d158a92/Server/Game%20Server/Server/iocpServerClass.cpp#L166),
+[서버 송신 처리 함수](https://github.com/SeungWon-git/Outside/blob/db625b126cf9d8e4034f34012b7e65709d158a92/Server/Game%20Server/Server/iocpServerClass.cpp#L400)
 
 ### 🔸 서버-클라 좀비 플레이어 시야에 포착
 - 먼저, 플레이어 시야 포착(CanSeePlayer Task)은 Ray Casting 방식을 이용하여 실제로 플레이어를 포착 했을때 좀비가 플레이어를 쫒아가도록 설계
@@ -102,7 +103,7 @@
     - 처리 속도: **0.5초 → 0.001초(=1ms)**
   * 송신큐 **lock-free**로 접근 (***CAS(Compare And Swap) 연산*** 이용) → 낮은 지연, 높은 처리량
  - 코드:
-[A* 알고리즘](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/ZombiePathfinder.cpp#L200), [SendQueue Lock-Free](https://github.com/SeungWon-git/Outside/blob/d0069c056e4d1d7483763fe51fab081240fd8236/Server/Game%20Server/Server/iocpServerClass.cpp#L414)
+[A* 알고리즘](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/ZombiePathfinder.cpp#L200), [SendQueue Lock-Free CAS 연산](https://github.com/SeungWon-git/Outside/blob/d0069c056e4d1d7483763fe51fab081240fd8236/Server/Game%20Server/Server/iocpServerClass.cpp#L414)
 
 ### 🔸 좀비 애니메이션 문제
 - 문제: 좀비 공격/피격 후 다시 다음 애니메이션으로 전환될 시에 걷기 애니메이션이 항상 강제적으로 재생이 되어 움찔거리게 되는 문제 발생
