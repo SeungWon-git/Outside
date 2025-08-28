@@ -11,11 +11,11 @@
    > + **좀비 절단 시스템 (N개 절단)**
    > + **좀비 부활 시스템 (재결합)**
    > + **Behavior Tree를 활용한 좀비 AI**
-   > + **중앙 집중형 서버 구조**
+   > + **중앙 집중형 서버 구조**, **IOCP 기반 비동기 서버 모델을 이용한 고성능 실시간 통신을 지원**
  - 개발에 사용된 기술 스택:
    + Unreal Engine 5.5, C++, Blueprints, Niagara VFX
-   + iocp server, Google protobuf, Behavior Tree
-   + GitHub
+   + iocp server, Google protobuf
+   + Behavior Tree
  - 시연 영상: [▶️ 유튜브 영상 보기](https://www.youtube.com/watch?v=11JJCJvbKck)
 <img src="http://img.youtube.com/vi/11JJCJvbKck/0.jpg" width="400">
 
