@@ -59,14 +59,15 @@
   + 해결 1-2: 미리 받은 앞선 두 정점을 가지고 클라에서도 자체적으로 좀비 이동시켜 좀비 움직임 부드럽게 **보간**
 - 문제 2: 패킷 손실 이슈
   + 원인: 여러 송신 스레드에서 Send → 송신 버퍼에서 **Data Race 발생**
-  + 해결: 송신 데이터들을 모아 **lock-free 송신큐**에 담는 방식으로 전환 및 단일 송신 스레드 설계
+  + 해결: 송신 데이터들을 모아 **lock-free 송신큐**에 담는 방식으로 전환
 - 문제 3: 좀비 멈춤 현상
   + 원인: for루프를 돌며 너무 반복적이고 연속적으로 패킷을 Send하여 패킷로스가 발생
   + 해결: 층별 묶음 전송 방식으로 개선
 - 코드: 
 [서버 좀비 path 송신](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/iocpServerClass.cpp#L816), 
 [서버 좀비 움직임 계산](https://github.com/SeungWon-git/Outside/blob/main/Server/Game%20Server/Server/Zombie.cpp#L636), 
-[클라 좀비 움직임 계산](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L36)
+[클라 좀비 움직임 계산](https://github.com/SeungWon-git/Outside/blob/main/unreal/Project/Source/Project/Private/ProZombie/ZombieAIController.cpp#L36),
+[서버 송수신 스레드](https://github.com/SeungWon-git/Outside/blob/db625b126cf9d8e4034f34012b7e65709d158a92/Server/Game%20Server/Server/iocpServerClass.cpp#L166)
 
 ### 🔸 서버-클라 좀비 플레이어 시야에 포착
 - 먼저, 플레이어 시야 포착(CanSeePlayer Task)은 Ray Casting 방식을 이용하여 실제로 플레이어를 포착 했을때 좀비가 플레이어를 쫒아가도록 설계
